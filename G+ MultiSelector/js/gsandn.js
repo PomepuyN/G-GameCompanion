@@ -622,7 +622,7 @@ function gs_addGame(g) {
 			+ slugify(g)
 			+ '">Delay between two posts opening </label></td><td><select id="openDelay'
 			+ slugify(g)
-			+ '" value="delay"><option value="0">0</option><option value="200" selected>0.2</option><option value="500">0.5</option><option value="2000">2</option><option value="5000">5</option></select></td></tr>'
+			+ '" value="delay"><option value="0">0</option><option value="200" selected>0.2</option><option value="500">0.5</option><option value="2000">2</option><option value="5000">5</option><option value="7000">7</option><option value="10000">10</option></select></td></tr>'
 			+ '<tr><td align="right"><label for="autoHide'
 			+ slugify(g)
 			+ '">Automatically hide the posts </label></td><td><input id="autoHide'
@@ -1458,7 +1458,7 @@ function n_addGame(g) {
 			+ slugify(g)
 			+ '">Delay between two notifications opening </label></td><td><select id="openDelay'
 			+ slugify(g)
-			+ '" value="delay"><option value="0">0</option><option value="200" selected>0.2</option><option value="500">0.5</option><option value="2000">2</option><option value="5000">5</option></select></td>'
+			+ '" value="delay"><option value="0">0</option><option value="200" selected>0.2</option><option value="500">0.5</option><option value="2000">2</option><option value="5000">5</option><option value="7000">7</option><option value="10000">10</option></select></td>'
 			+ '<tr><td align="right"><label for="autoHide'
 			+ slugify(g)
 			+ '">Automatically hide the notifications </label></td><td><input id="autoHide'
