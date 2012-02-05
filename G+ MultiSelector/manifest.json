@@ -1,0 +1,36 @@
+{
+	"name": "G+ Game Companion",
+	"version": "1.7.6.3",
+	"update_url": "http://gplusnc.nicolaspomepuy.fr/updates.xml",
+	"icons": {
+    	"128": "icon128.png",
+    	"48": "icon48.png",
+    	"16": "icon16.png"
+  	},
+	"description": "G+ Game Companion (formerly G+ Notify Circles) is a Google Chrome extension designed to help you with Google Plus games",
+	"background_page": "background.html",
+	"page_action": {
+	    "default_icon": "icon.png",
+	    "default_title": "G+ Game Companion",
+	    "default_popup": "popup.html"
+  	},
+  	"options_page": "options.html",
+	"permissions": [
+    	"tabs", "https://plus.google.com/games/*", "http://plus.google.com/games/*", "notifications"
+  	],
+  	"content_security_policy": "default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src https://plus.google.com; font-src 'self'; img-src 'self' 'unsafe-inline' https://www.paypalobjects.com",
+  	"content_scripts": [
+    {
+      "matches" : ["http://plus.google.com/*", "https://plus.google.com/*"],
+      "js": [
+        "js/jq.js",
+        "js/Objects/Circle.js",
+        "js/Objects/Contact.js",
+        "js/Objects/CircleSelection.js",
+        "js/jquery-ui.js",
+        "js/gsandn.js",
+        "js/gns.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

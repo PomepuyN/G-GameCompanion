@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<link type="text/css" rel="stylesheet" href="css/options.css">
+
+<script type="text/javascript" src="js/jq.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/Objects/Settings.js"></script>
+<script type="text/javascript" src="js/Objects/Game.js"></script>
+<title>Filters</title>
+<script type="text/javascript">
+
+
+$(document)
+.ready(
+		function() {
+			injectStylesheet(document);
+			$(".optiontab").each(function() {
+				$(this).click(function() {
+					deslectectAll();
+					$(this).addClass("selected");
+					showPage($(this).attr("for"));
+				});
+			});
+			showPage("op-help");
+			createHelp();
+		});
+function showPage(pageId) {
+	$(".optionpage").each(function() {
+		if ($(this).attr('id') != pageId) {
+			$(this).fadeOut("slow");
+		}
+	});
+	$("#" + pageId).fadeIn("slow");
+
+}
+function deslectectAll() {
+	$(".optiontab").each(function() {
+		$(this).removeClass("selected");
+	});
+}
+
+
+
+function injectStylesheet(doc) {
+	doc = doc || document;
+
+	var linkNode  = doc.createElement('link');
+	linkNode.rel = 'stylesheet';
+	linkNode.type = 'text/css';
+	linkNode.href = chrome.extension.getURL('css/jquery-ui.css') + '?' + new Date().getTime();
+	doc.getElementsByTagName('head')[0].appendChild(linkNode);
+}
+
+function createHelp(){
+	html="<p>The filter options allows you to add restrictions for the notifications or posts you open.</p>";
+	html+='<h3 class="gcctitle">Target text</h3>';
+	html+='<p>The text taken into account for the filter function begins with the game name and ends with the link text (including it).</p>';
+	html+='<h3 class="gcctitle">Simple filtering</h3>';
+	html+='<p>You can force the extension to open only posts containing words by adding it to the <em>Open only posts containing</em> input.</p>';
+	html+='<p>You can force the extension <b>not</b> to open posts containing words by adding it to the <em>Open posts not containing</em> input.</p>';
+	html+='<h4>Examples</h4>';
+	html+='<p>Here is a post\'s text :</p>';
+	html+='<div class="gccquote"><span class="RiLh2d">City of Wonder</span> - <span class="sKb9A">Help Steve build the Opera House and get a FREE BONUS!</span><div class="uVzZJf"><div class="go RD"><div class="vg">Practice makes perfect for any show!</div></div></div><div><a class="c-i-j-ua c-i-j-ua">Help to Collect Bonus</a></div></div>';
+	html+=getExampleTable("1","Steve", "", "Post will open and all the others containing the word 'Steve'.");
+	html+=getExampleTable("2","", "Steve", "Post won't open. All the others will open except those containing the word 'Steve'.");
+	
+	html+='<h3 class="gcctitle">Advanced filtering</h3>';
+	html+='<p>You can also use operators to make filtering more efficient.</p>';
+	html+='<p>There are two operators :</p>';
+	html+='<ul><li><b>&</b> means <b>AND</b></li><li><b>$</b> means <b>OR</b></li></ul>';
+	html+='<p>Operator<b>&</b> has a higher precedence than <b>$</b>. It means that <b><em>google&plus$google&game</em></b> is the same than <em>look for "google" and "plus", or look for "google" and "game"</em>.</p>';
+	
+
+	html+='<h4>Examples</h4>';
+	html+='<p>Here is a post\'s text :</p>';
+	html+='<div class="gccquote"><span class="RiLh2d">City of Wonder</span> - <span class="sKb9A">Help Steve build the Opera House and get a FREE BONUS!</span><div class="uVzZJf"><div class="go RD"><div class="vg">Practice makes perfect for any show!</div></div></div><div><a class="c-i-j-ua c-i-j-ua">Help to Collect Bonus</a></div></div>';
+	html+=getExampleTable("1","Steve&opera", "", "Post will open and all the others containing the word 'Steve' and 'opera'.");
+	html+=getExampleTable("2","Steve&gift", "", "Post won't open beacause it has to contain the word 'gift'.");
+	html+=getExampleTable("3","Steve$gift", "", "Post will open and all the others containing the word 'Steve' or 'gift'.");
+	html+=getExampleTable("4","gift$Steve&opera", "", "Post will open. It doesn't contain 'gift' but it contains 'Steve' <b>AND</b> 'opera'.");
+
+	$("#op-help").append(html);
+}
+
+function getExampleTable (num,fin, fout,result){
+	return '<div class="gccExample">'+
+	'<em>Example '+num+'</em>'+
+	'<table cellspacing="5" class="gccexampletable" width="970">'+
+		'<tr>'+
+			'<th align="right" width="180">Open only posts containing</th>'+
+			'<td class="inputtext" width="110">'+fin+'</td>'+
+			'<td rowspan="2" class="center"><p><b>Result</b></p><p>'+result+'</p></td>'+
+		'</tr>'+
+		'<tr>'+
+		'<th align="right" width="180">Open posts not containing</th>'+
+		'<td class="inputtext" width="110">'+fout+'</td>'+
+		'</tr>'+
+	'</table></div>';	
+		
+	
+}
+</script>
+</head>
+<body>
+	<div id="sidetabs" style="width:200px;">
+		<div id="header" style="text-align: right;padding-right: 25px;">Filters</div>
+		<div for="op-help" class="optiontab selected">Help</div>
+		<div for="op-results" class="optiontab">Presets</div>
+		<div for="op-form" class="optiontab">Submit one</div>
+	</div>
+	<div id="pageoption">
+		<div id="op-help" class="optionpage">
+			<h2>Help</h2>
+		</div>
+		<div id="op-results" class="optionpage">
+			<h2>Presets</h2>
+			<iframe width='800' frameborder='0' src='https://docs.google.com/spreadsheet/pub?hl=fr&hl=fr&key=0AgahQ-lq57FGdHoydlZ1bmpRNDN4M3ZzQ2tIRkR3SGc&single=true&gid=0&output=html&widget=true'></iframe>
+		</div>
+		<div id="op-form" class="optionpage">
+			<h2>Submit one</h2>
+			<iframe src="https://docs.google.com/spreadsheet/embeddedform?formkey=dHoydlZ1bmpRNDN4M3ZzQ2tIRkR3SGc6MQ" width="760" height="600" frameborder="0" marginheight="0" marginwidth="0">Chargement en cours...</iframe>
+		</div>
+		
+	</div>
+	<div id="filterEditor" class="hidden">Filter Editor</div>
+</body>
+</html>

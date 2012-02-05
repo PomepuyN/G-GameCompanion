@@ -1,0 +1,278 @@
+@font-face {
+	font-family: Distro;
+	src: url('chrome-extension://__MSG_@@extension_id__/fonts/distro.ttf');
+}
+h1 {
+	font-family: Distro;
+	text-shadow: 0px 0px 3px #4d90fe; 
+	text-align: center;
+}
+a {
+	text-decoration: none;
+	color: #36C;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+#sidetabs {
+    position: absolute;
+    background-color: #ddd;
+    width: 300px;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-right: 1px solid #cfe0fc;
+    box-shadow: inset -8px 0 30px -30px black;
+}
+body {
+	background: #eeeeee;
+	font-family: Arial;
+	letter-spacing: 1px;
+}
+#header {
+	background: url("chrome-extension://__MSG_@@extension_id__/icon64.png") no-repeat 5px 5px;
+	padding-right: 65px;
+	padding-bottom: 25px;
+	height: 75px;
+	line-height: 64px;
+	font-size: 32px;
+	text-shadow: 1px 1px 1px #4d90fe;
+	text-align: right;
+}
+#pageoption {
+    position: absolute;
+    top: 0px;
+    left: 300px;
+    bottom: 75px;
+    right:0px;
+    width: 700px;
+    padding: 20px;
+}
+#save {
+    position: absolute;
+    bottom: 0px;
+    height: 75px;
+    left: 300px;
+    margin-left: 100px;
+}
+.optiontab {
+	height: 30px;
+	line-height:30px;
+	padding-right: 15px;
+	text-align: right;
+	border: 1px solid #777;
+	border-right: none;
+	cursor: pointer;
+	margin-left: 40px; 
+	margin-bottom: 10px;
+	border-radius: 15px 0px 0px 15px;
+	background: #ccc;
+}
+.optiontab:HOVER {
+	font-weight: bold;
+	text-shadow: 1px 1px 1px #4d90fe;
+	color: #333;
+}
+.selected:HOVER {
+	color: #4d90fe;
+	text-shadow: 1px 1px 1px #000;
+}
+.selected {
+	color: #4d90fe;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#4c4c4c), color-stop(20%,#595959), color-stop(50%,#2c2c2c), color-stop(52%,#000000), color-stop(100%,#2b2b2b));
+	border-right: none;
+	font-weight: bold;
+	text-shadow: 1px 1px 1px #000;
+}
+.button {
+	display: inline-block;
+	padding-left : 5px;
+	padding-right : 5px;
+	height: 30px;
+	line-height: 30px;
+	border-radius: 2px;
+	text-align:center;
+	color : #fff;
+	border: 1px solid #1e69de;
+	cursor: pointer;
+	background: -webkit-linear-gradient(top, #4d90fe 0%,#54a3ee 50%,#4d90fe 52%,#1e69de 100%);
+}
+
+.button:HOVER {
+	background: -webkit-linear-gradient(top, #1e69de 0%,#4d90fe 49%,#54a3ee 50%,#4d90fe 100%);
+}
+.button img {
+	vertical-align:middle;
+	margin-right: 5px;
+}
+.optionpage {
+	display: none;
+	position: absolute;
+}
+h2{
+	font-size: 32px;
+	text-align: center;
+	text-shadow: 1px 1px 1px #4d90fe;
+	color: #000;
+}
+.optionline {
+	margin-bottom: 2px;
+	display: inline;
+/* 	text-shadow: 1px 1px 0px #222; */
+}
+.explanation {
+	color: #222;
+	font-size: 10px;
+	padding: 0px;
+	margin: 0px;
+	margin-bottom: 15px;
+	padding-left: 90px;
+}
+
+label {
+	cursor: pointer;
+}
+
+.disabled {
+	color: #aaa;
+}
+.hidden {
+	display: none;
+}
+input[type=checkbox] {
+	right: 0px;
+	text-align: right;
+	border: none;
+}
+input {
+	border: 1px solid #4d90fe;
+	border-radius : 3px;
+}
+select {
+	border: 1px solid #4d90fe;
+	border-radius : 3px;
+}
+.inputcontainer {
+	display: inline-block;
+	width: 80px;
+}
+ul {
+	margin: 0px;
+}
+fieldset {
+	margin-top: 10px;
+	border-radius: 10px;
+	border: 2px ridge #4d90fe;
+}
+legend {
+	color: #000000;
+}
+.savedTime {
+	padding-left: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+/* common settings checkbox and radiobutton */
+input[type="checkbox"],
+input[type="radio"]
+{
+ -khtml-appearance: none;
+ background: url('chrome-extension://__MSG_@@extension_id__/imgs/radioandcheckboxsprite.png') no-repeat;
+ width: 20px;
+ height: 20px;
+ vertical-align: middle;
+}
+input[type="checkbox"]
+{
+ background-position-x: left;
+}
+input[type="radio"]
+{
+ background-position-x: right;
+}
+input[type="checkbox"]:hover,
+input[type="radio"]:hover
+{
+ background-position-y: -40px;
+}
+input[type="checkbox"]:checked,
+input[type="radio"]:checked
+{
+ background-position-y: -20px;
+}
+input[type="checkbox"]:checked:hover,
+input[type="radio"]:checked:hover
+{
+ background-position-y: -60px;
+}
+/* disabled settings for checkbox and radiobutton */
+input[type="radio"]:disabled,
+input[type="checkbox"]:disabled
+{
+ opacity: .3;
+}
+.imagewarning {
+	float: left;
+	margin-right: 10px;
+}
+.tabHeader {
+	font-size:10px;
+	letter-spacing:1px;
+}
+.inlineblock {
+	display: inline-block;
+}
+.filterLineDiv {
+	height: 45px;
+}
+.editFilter {
+	margin-left: 20px;
+}
+
+.gccquote {
+	margin-left: 10px;
+	padding-left: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	border-left: 1px solid #bbb;
+	font-size: 12px;
+}
+.gccexampletable .inputtext {
+	border: 1px solid #bbb;
+	border-radius: 3px;
+}
+.gccexampletable .center {
+	text-align: center;
+}
+.gccexampletable p {
+	margin: 0px;
+	padding: 0px;
+}
+.gccExample {
+	border-bottom: 1px solid #bbb;
+	margin-bottom: 10px;
+}
+.gccExample td {
+	font-size: 12px
+}
+.gccExample th {
+	font-size: 12px
+}
+.gcctitle {
+	text-shadow: 0px 0px 1px #4D90FE;
+}
+p {
+	font-size: 12px;
+}
+#op-help li {
+	font-size: 12px;
+}

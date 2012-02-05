@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Notification</title>
+<link type="text/css" rel="stylesheet" href="css/main.css">
+<script type="text/javascript">
+function gup( name )
+{
+  name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+  var regexS = "[\\?&]"+name+"=([^&#]*)";
+  var regex = new RegExp( regexS );
+  var results = regex.exec( window.location.href );
+  var regex2 = new RegExp( "%20" );
+  
+  if( results == null )
+    return "";
+  else {
+	  var splitted = results[1].split(regex2);
+	  return splitted.join(" ");
+  }
+}
+function init(){
+	document.getElementById("message").innerHTML=gup("msg");	
+	document.getElementById("autonotif").innerHTML=gup("autonotif");	
+}
+</script>
+</head>
+<body onload="init()">
+	<div class="mainDivNotif">
+	<div class="mainMessage">
+			<h3>It's time !</h3>
+			<div id="message"></div>
+		</div>
+		<div class="notiflittle">This is a<span id="autonotif"></span> message sent by G+ Game Companion.</div>
+		<div class="notiflittle">You can disable this message in the extension's options by right clicking on the blue icon.</div>
+	</div>
+</body>
+</html>

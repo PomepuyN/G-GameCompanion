@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link type="text/css" rel="stylesheet" href="css/jquery-ui.css">
+<link type="text/css" rel="stylesheet" href="css/main.css">
+<link type="text/css" rel="stylesheet" href="css/timepicker.css">
+<script type="text/javascript" src="js/jq.js"></script>
+<script type="text/javascript" src="js/Objects/Circle.js"></script>
+<script type="text/javascript" src="js/Objects/Contact.js"></script>
+<script type="text/javascript" src="js/Objects/CircleSelection.js"></script>
+<script type="text/javascript" src="js/Objects/HistoryEntry.js"></script>
+<script type="text/javascript" src="js/Objects/History.js"></script>
+<script type="text/javascript" src="js/historymanager.js"></script>
+<script type="text/javascript" src="js/timepicker.js"></script>
+<script type="text/javascript" src="js/functions.js"></script>
+<script type="text/javascript" src="js/help.js"></script>
+<script type="text/javascript" src="js/Objects/Settings.js"></script>
+<script type="text/javascript" src="js/Objects/Game.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/Objects/BugEntry.js"></script>
+<script type="text/javascript" src="js/Objects/BugHistory.js"></script>
+<script type="text/javascript">
+var tp;
+	$(document).ready(function() {
+		chrome.tabs.executeScript(null, {
+			code : "importCircle(0)"
+		});
+		chrome.tabs.executeScript(null, {
+			code : "look4MultiAccounts()"
+		});
+		var details = chrome.app.getDetails();
+	    $("#appVersion").html("V "+details.version);
+		
+		var settings = new Settings();
+		settings.get();
+		var defaultTime = settings.notification_default_time;
+		var dtS = splitTime(defaultTime);
+		tp = new TimePicker(dtS[0],dtS[1],dtS[2],dtS[3], $("#timepicker"));
+		if (settings.max_popup_height != 0){
+			$("#main").css("max-height", settings.max_popup_height+"px");
+			$("#main").css("overflow-y", "auto");
+			$("#main").css("overflow-x", "hidden");
+		}
+	});
+	
+	function showWarning(){
+		if (localStorage["showWarning"] == "true"){
+			localStorage["showWarning"] = false;
+			var html = 
+				'<div id="firstTimeUse" class="hidden">'+
+				'<img width="80" style="float:left;" src="https://lh4.googleusercontent.com/sQJLSZ2JixT4Y4nKgE_n-VEzKiJZuYK4MSTLpDbydlyQmvZ-4gDbz6ey6NbvsEAva8Do0vdwzg=s128-h128-e365">'+
+				'<h2 style="line-height:80px;text-align:center;">Welcome in version 1.3</h2>'+
+				'<p>Unfortunately, due to major code changes G+ Game Companion has to <b>reset your settings</b> and to <b>delete your current history</b>. </p>'+
+				'<p>This intrusive popup will only appear one time. I did all my best to avoid this loss of data could happen again.</p>'+
+				'<p>You could complain by <a href="https://plus.google.com/113671876130843889747/posts" target="_blank">+mentioning me</a>. You can also leave a comment <a href="https://plus.google.com/113671876130843889747/posts/eWmRcyWPtJv" target="_blank">on this post.</a></p>'+
+				'<p> I am really sorry for the inconvenience.</p>'+
+				'</div>';
+			$("body").append(html);
+			$("#firstTimeUse").dialog({
+				modal: true,
+				width:740,
+				title:"G+ Game Companion has been updated.",
+				buttons: {
+					Close: function() {
+						$( this ).dialog( "close" );
+					}
+				},
+				beforeClose: function(event, ui) { 
+					
+				}
+			});
+			
+		}
+	}
+
+	function help() {
+		if ($('#help').css('display') == "none")
+			$('#help').slideDown("slow");
+		else
+			$('#help').slideUp("slow");
+	}
+	function history() {
+		if ($('#history').css('display') == "none")
+			$('#history').slideDown("slow");
+		else
+			$('#history').slideUp("slow");
+	}
+
+	function closeW() {
+		window.close();
+	}
+
+	var circles;
+	function getCircle(code){
+		for ( var i = 0; i < circles.length; i++) {
+			if (circles[i].code == code){
+				return circles[i];
+			}
+		} 
+		
+		return false;
+		
+	}
+	
+	var members;
+	function getMember(code){
+		for ( var i = 0; i < members.length; i++) {
+			if (members[i].code == code){
+				return members[i];
+			}
+		}
+	}
+	var selectedMAIndex = 0;
+
+	chrome.extension.onRequest.addListener(function(request, sender,
+			sendResponse) {
+		if (request.action == "sendData") {
+			circles = request.circles;
+			members = request.members;
+			
+			circles = decodeCircleArray(circles);
+			members = decodeContactArray(members);
+			majView();
+			populateTimes();
+			if (localStorage["showWarning"] == undefined){
+				showWarning();
+				localStorage["showWarning"] = true;
+			}
+		}
+		if (request.action == "sendDataError") {
+			var text = request.text;
+			var error = request.error;
+			$("#ajaxError").html("<p>An error has occured. Please check your connection or try reloading the tab.</p><p>Error sent : "+request.text+"</p>");
+		}
+		if (request.action == "performed") {
+			var members = JSON.parse(request.members);
+			var time = request.time;
+			var partial = request.partial;
+			var circleCode = request.circleCode;
+			var histEntry;
+			if (partial == "true"){
+				histEntry=getHistoryEntry(time);
+				for ( var i = 0; i < members.length; i++) {
+					histEntry.circleSelection.members.push(members[i]);
+				}
+				var ci = getCircle(histEntry.circleSelection.circle);
+				if (histEntry.circleSelection.members.length >= ci.members.length){
+					histEntry.circleSelection.partial = false;
+				}
+			} else {
+				histEntry = new HistoryEntry();
+				histEntry.autoNotif = true;
+				var ci = getCircle(circleCode);
+				histEntry.name = ci.name;
+				histEntry.time = time;
+				var settings = new Settings();
+				settings.get();
+				histEntry.notificationTime = time;
+				if (settings.auto_history_notify){
+					histEntry.notificationTime = parseInt(histEntry.time)+parseInt(settings.notification_default_time)*1000;
+				}
+				var cs=new CircleSelection();
+				cs.circle = circleCode;
+				cs.partial = (ci.members.length != members.length);
+				cs.members = new Array();
+				for ( var i = 0; i < members.length; i++) {
+					cs.members.push(members[i]);
+				}
+				histEntry.circleSelection=cs;
+			}
+			saveHistoryEntry(histEntry, true);
+			launchBackAction();
+		}
+		if (request.action == "notperformed") {
+			$("#launchNotPerformed").dialog({
+				modal: true,
+				title:"An error has occured",
+				width:450,
+				buttons: {
+					Close: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+		}
+		if (request.action == "multiAccount") {
+			$("#multiAccounts").slideDown();
+			html = "";
+			var users = request.users;
+			for ( var i = 0; i < users.length; i++) {
+				html+='<div class="MAEntry';
+				if (i == selectedMAIndex) html+= " MASelected";
+				html+='" onclick="changeAccount(\''+users[i].index+'\')" maid="'+users[i].userId+'" maindex="'+users[i].index+'"><p>'+users[i].user+'</p></div>';
+			}
+			$("#accounts").html(html);
+		}
+	});
+	
+	function changeAccount(index) {
+		selectedMAIndex = index;
+		$(".MAEntry").each(function(){
+			if ($(this).attr("maindex") != index){
+				$(this).removeClass("MASelected");
+			} else {
+				$(this).addClass("MASelected");
+			}
+		});
+		chrome.tabs.executeScript(null, {
+			code : "importCircle('" + index + "')"
+		});
+	}
+	
+	function getCircleDOM(circle, forcePartial) {
+		var partialHtml ="";
+		if (hasPartial(circle.code) || forcePartial) {
+			partialHtml+= '<a class="ciPartial" href="javascript:continuePartial(\''
+				+ circle.code
+				+ '\')">'
+				+ '<img title="Partial selection found !" src="imgs/partial.gif"/>'
+				+ '</a>';
+		}
+		
+
+		return '<div class="circle" id="ci'+circle.code+'">'
+				+ '<a class="stt" href="javascript:showInfos(\''
+				+ circle.code
+				+ '\')">'
+				+ '<img  title="Show circle\'s contacts" src="imgs/info.png"/>'
+				+ '</a>'
+// 				+ '<a href="javascript:showInfos(\''
+// 				+ circle.code
+// 				+ '\')">'
+// 				+ '<img class="ciCut" title="Cut this circle !" src="imgs/cut.png"/>'
+// 				+ '</a>'
+				+ partialHtml
+				+ '<div onClick="javascript:circleClick(\''
+				+ circle.code
+				+ '\')">'
+				+ '<input class="cbCir" id="cb'+circle.code+'" type="checkbox" value="'+circle.code+'"/><p>'
+				+ circle.name + ' (' + circle.members.length + ')</p>'
+				+ '</div>' 
+				
+				+ '</div>';
+
+	}
+
+	function majView() {
+		var html = "";
+		var title = "";
+			
+		for ( var i = 0; i < circles.length; i++) {
+			title = "";
+			for ( var j = 0; j < circles[i].members.length; j++) {
+				title += circles[i].members[j].name + ", ";
+			}
+			if (title == "")
+				title = "empty";
+// 			if (i % 3 == 0) {
+// 				html += '<div style="position:relative;display:block;top:0px;">';
+// 			}
+			
+			html+=getCircleDOM(circles[i], false);
+			
+// 			if ((i + 1) % 3 == 0) {
+// 				html += '</div>';
+// 			}
+
+		}
+		$("#circles").html(html);
+	}
+
+	var actualCircleCode;
+	var infoOpened = false;
+	function showInfos(circleCode) {
+		if (actualCircleCode == circleCode && infoOpened) {
+			infoOpened = false;
+			$('#infos').slideUp("slow");
+			return false;
+		}
+		actualCircleCode = circleCode;
+		infoOpened = true;
+		$('#infos').slideDown("slow");
+		populateInfos(circleCode);
+	}
+	function closeInfo() {
+		infoOpened = false;
+		$('#infos').slideUp("slow");
+	}
+
+	function populateInfos(code) {
+		var circle;
+		for ( var i = 0; i < circles.length; i++) {
+			if (circles[i].code == code) {
+				circle = circles[i];
+			}
+
+		}
+		$("#circleName").html(circle.name + ' (' + circle.members.length + ')');
+		var html = "";
+		for ( var i = 0; i < circle.members.length; i++) {
+			if (i % 3 == 0) {
+				html += '<div style="position:relative;display:block;top:0px;">';
+			}
+
+			html += '<div class="member">'
+					+ '<img class="memberImg" height="44" src="'+circle.members[i].img+'"/>'
+					+ '<div class="memberName"><p>' + circle.members[i].name
+					+ '</p></div></div>';
+			if ((i + 1) % 3 == 0) {
+				html += '</div>';
+			}
+		}
+		$("#members").html(html);
+
+	}
+
+	function circleClick(code) {
+		var cb = document.getElementById("cb" + code);
+		if (!cb.checked) {
+			$("#ci" + code).addClass("ciSelected");
+			cb.checked = true;
+			oneSelected = true;
+		} else {
+			$("#ci" + code).removeClass("ciSelected");
+			cb.checked = false;
+			oneSelected = false;
+		}
+		for ( var i = 0; i < circles.length; i++) {
+			var cb = document.getElementById("cb" + circles[i].code);
+			if (cb.checked && circles[i].code != code) {
+				cb.checked = false;
+				$("#ci" + circles[i].code).removeClass("ciSelected");
+			}
+		}
+		if (oneSelected) {
+			$("#launchButton").removeClass("buttonDisabled");
+		} else {
+			$("#launchButton").addClass("buttonDisabled");
+		}
+	}
+	
+	
+	function getCircleSelectedInUI(){
+		for ( var i = 0; i < circles.length; i++) {
+			var cb = document.getElementById("cb" + circles[i].code);
+			if (cb.checked) {
+				return circles[i];
+			}
+		}
+	}
+
+	function continuePartial(circleCode){
+		var hes = getHistory().hes;
+		var hesSelected = new Array();
+		for ( var i = 0; i < hes.length; i++) {
+			if (hes[i].circleSelection.circle == circleCode && hes[i].circleSelection.partial){
+				hesSelected.push(hes[i]);
+			}
+		}
+				var html=partialCheckHTML(hesSelected);
+				$("#partialCheckEntries").html(html);
+				$(".timerPBar").each(function(){
+					$(this).progressbar({
+						value: $(this).attr("pc")*100
+					});
+					
+				});
+				$("#partialCheck").dialog({
+					modal: true,
+					width:$("body").width()-30,
+					maxHeight:$("body").height,
+					buttons: {
+						Close: function() {
+							$( this ).dialog( "close" );
+						}
+					}
+				});
+				if ($("#partialCheck").dialog("widget").height() > $("body").height()){
+					$("#partialCheck").dialog("option", "height", $("body").height());
+				}
+	}
+	
+	function continuePartialSelection(hetime){
+		$("#partialCheck").dialog("close");
+		var histEntry = getHistoryEntry(hetime);
+		
+		var alrSelectedMembers = histEntry.circleSelection.members;
+		var ciMembers = getCircle(histEntry.circleSelection.circle).members;
+		var settings = new Settings();
+		settings.get();
+		
+		//Find contacts to select
+		var launchMembers = new Array();
+		for ( var i = 0; i < ciMembers.length; i++) {
+			var available = true;
+			for ( var j = 0; j < alrSelectedMembers.length; j++) {
+				if (alrSelectedMembers[j] == ciMembers[i].code){
+					available = false;
+				}
+			}
+			if (available && launchMembers.length < settings.max_selection){
+				launchMembers.push(ciMembers[i].code);
+			}
+		}
+		chrome.tabs.executeScript(null, {
+			code : "launchSelection('" + JSON.stringify(launchMembers) + "','"+hetime+"','"+true+"','"+histEntry.circleSelection.circle+"')"
+
+		});
+		
+		
+	}
+	
+	var circlesSelected = new Array();
+	function select(force) {
+		circlesSelected = new Array();
+		if (!$("#launchButton").hasClass("buttonDisabled")) {
+			var members = new Array();
+			
+			
+			var circleSelected = getCircleSelectedInUI();
+			var settings = new Settings();
+			settings.get();
+			var circleSelection = new CircleSelection();
+			circleSelection.circle = circleSelected.code;
+			
+			// Looking for limit
+			if (circleSelected.members.length > settings.max_selection){
+				
+				// Look for a partial selection
+				
+				var historyEntries = getHistory().hes;
+				var lastHEPartialSelection = new Array();
+				var settings = new Settings();
+				settings.get();
+				if (force != 0 || !settings.show_partial_message){
+					//Slice the circle selection
+					circleSelection.partializeSelection(circleSelected, new Array(), settings.max_selection);
+					
+				} else {
+					// Confirmation box
+					$("#max_selection").html(settings.max_selection);
+					$("#circleExample").html(getCircleDOM(circleSelected, true));
+					$("#confirmationExceeded").dialog({
+						modal: true,
+						width:740,
+						title:"Limit exceeded.",
+						buttons: {
+							No: function() {
+								var settings = new Settings();
+								settings.get();
+								if ($("#showAgain")[0].checked) {
+									settings.show_partial_message = false;
+								}
+								settings.save();
+								$( this ).dialog( "close" );
+							},
+							Yes: function() {
+								var settings = new Settings();
+								settings.get();
+								if ($("#showAgain")[0].checked) {
+									settings.show_partial_message = false;
+								}
+								settings.save();
+								select(1);
+								$( this ).dialog( "close" );
+							}
+						}
+					});
+					if ($("#confirmationExceeded").dialog("widget").height() > $("body").height()){
+						$("#confirmationExceeded").dialog("option", "height", $("body").height());
+					}
+					$(".ui-dialog-buttonpane").prepend('<div style="float: left;height: 30px;margin-top: 10px;"><input type="checkbox" value="showAgain" id="showAgain"/><label for="showAgain">Don\'t show this message again.</label><div>');
+					return false;
+				}
+				
+				
+				
+			} else {
+				var ciMembers= new Array();
+				for ( var i = 0; i < circleSelected.members.length; i++) {
+					ciMembers.push(circleSelected.members[i].code);
+				}
+				circleSelection.members = ciMembers;
+			}
+			
+			launchBackAction();
+			
+			
+			var now = new Date().getTime();
+// 			var he = new HistoryEntry();
+// 			he.time = new Date().getTime();
+// 			he.name = circleSelected.name;
+// 			he.notificationTime = new Date().getTime();
+// 			he.circleSelection = circleSelection;
+			//Is there an automatic notification to put in ?
+// 			if (settings.auto_history_notify) {
+// 				he.autoNotif = true;
+// 				he.notificationTime = parseInt(he.time)+parseInt(settings.notification_default_time)*1000;
+// 			}
+// 			saveHistoryEntry(he, true);
+			
+			var launchMembers = new Array();
+			for ( var i = 0; i < circleSelection.members.length; i++) {
+				launchMembers.push(circleSelection.members[i]);
+			}
+			chrome.tabs.executeScript(null, {
+				code : "launchSelection('" + JSON.stringify(launchMembers) + "','"+now+"','"+false+"','"+circleSelected.code+"')"
+			});
+		}
+		majView();
+
+	}
+	
+	//Launch the action to perform after a selection chosen in options
+	function launchBackAction() {
+		var settings = new Settings();
+		settings.get();
+		// Action suivante
+		if (settings.launch_back_action == 1){
+			$('#history').slideDown("slow");
+		} else if (settings.launch_back_action == 2) {
+			window.close();
+		}
+	}
+
+</script>
+</head>
+<body>
+	<div id="main">
+		<div class="header">
+			<span onclick="history()" title="History" class="history"></span> <span
+				onclick="help()" title="About G+ Game Companion" class="help"></span> <span
+				onclick="closeW()" title="Close" class="close"></span>
+		</div>
+		<div class="logo">G+ Game Companion</div>
+		<div id="appVersion"></div>
+		<div id="help">
+			<h2>About G+ Game Companion</h2>
+			<p>
+				<a target="_blank"
+					href="http://www.youtube.com/watch?v=PfXi2XZtSw8">You can see a demonstration here.</a>
+			</p>
+			<p>
+				G+ Game Companion has been developed by <span class="proflinkPrefix">+</span><a target="_blank" href="https://plus.google.com/113671876130843889747">Nicolas POMEPUY</a>.
+			</p>
+			<p>
+				Google plus page : <span class="proflinkPrefix">+</span><a target="_blank" href="https://plus.google.com/u/0/b/108089106601130554306/108089106601130554306/posts">G+ Game Companion</a>.
+			</p>
+			<p>
+				Extension name by <span class="proflinkPrefix">+</span><a target="_blank" href="https://plus.google.com/107176073754977513315">Mario Lombardo</a>.
+			</p>
+			<p>
+				Icon designed by <span class="proflinkPrefix">+</span><a target="_blank" href="https://plus.google.com/113505705991079028490">Danny Peters</a>.
+			</p>
+			<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+">
+<p>
+				You can make a donation here : 
+<input type="image" style="border:none;" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypalobjects.com/fr_FR/i/scr/pixel.gif" width="1" height="1">
+</p>
+</form>
+			<div class="spacer" onclick="javascript:help()">F</div>
+		</div>
+		<div id="history">
+			<h2>History</h2>
+			<div style="max-height:200px; overflow: auto;">
+				<div id="savedTimes"></div>
+			</div>
+			<div style="margin-left: 20px;" class="button" id="clearButton" onclick="clearSaved()">Clear All</div>
+			<div id="tooltip" style="display: none;">
+				<table>
+					<tr>
+						<td class="ttlinefirst">Name</td>
+						<td><input type="text" id="nameIt" />
+						</td>
+					</tr>
+					<tr>
+						<td class="ttlinefirst">Enable notification</td>
+						<td><input type="checkbox" id="hastonotify"
+							title="Has a notification" />
+						</td>
+					</tr>
+					<tr>
+						<td class="ttlinefirst">Set time</td>
+						<td><div id="timepicker"></div>
+						</td>
+					</tr>
+
+				</table>
+			</div>
+			<div class="spacer" onclick="javascript:history()">F</div>
+		</div>
+		<div id="infos">
+			<div id="circleName"></div>
+			<div style="max-height:200px; overflow: auto;">
+				<div id="members"></div>
+			</div>
+			<div class="spacer" onclick="closeInfo()">F</div>
+		</div>
+
+		<div id="multiAccounts" class="hidden">
+			<p id="MATitle">It seems you use multi accounts</p>
+			<div id="accounts"></div>
+		</div>
+		<div id="circles">
+			<div class="loader"></div>
+			<div id="ajaxError"></div>
+		</div>
+		<div class="buttons">
+			<div class="button buttonDisabled" id="launchButton"
+				onclick="select(0)">Select these contacts</div>
+		</div>
+		<div class="hidden" id="partialCheck">
+			<h2>Partial selections !</h2>
+			<div id="partialCheckEntries"></div>
+		</div>
+		<div class="hidden" id="confirmationExceeded">
+			<h4>
+				You exceeded the G+ limitation. Would you select only the <span
+					id="max_selection"></span> first contacts ?
+			</h4>
+		<img src="imgs/warning.png" class="imagewarning"/>
+			<div id="confirmationExceededExplanation">
+				<p>
+					If you hit <b>No</b>, nothing will be done.
+				</p>
+				<p>
+					If you hit <b>Yes</b>, a partial selection will be created and an
+					icon <img title="Partial selection found !" src="imgs/partial.gif"
+						align="middle"> will appear on this circle.
+				</p>
+				<p>By clicking on this icon, you will be able to continue this
+					selection.</p>
+				<p>Example :</p>
+			</div>
+			<div id="circleExample"></div>
+		</div>
+		<div class="hidden" id="launchNotPerformed">
+			<img src="imgs/warninggrave.png" class="imagewarning"/>
+			<h4>Selection failed</h4>
+			<p>It seems that no contact picker were opened when you launched the last selection.</p>
+			<p>Nothing has been performed nor saved.</p>
+		</div>
+		<div class="hidden" id="confirmClearAll">
+			<img src="imgs/warning.png" class="imagewarning"/>
+			<h4>Confirmation</h4>
+			<p>This will delete all your history.</p>
+			<p>Are you sure ?</p>
+		</div>
+	</div>
+</body>
+</html>

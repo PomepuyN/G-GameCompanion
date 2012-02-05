@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link type="text/css" rel="stylesheet" href="css/options.css">
+<link type="text/css" rel="stylesheet" href="css/timepicker.css">
+<link type="text/css" rel="stylesheet" href="css/jquery-ui.css">
+<title>G+ Game Companion</title>
+<script type="text/javascript" src="js/Objects/Settings.js"></script>
+<script type="text/javascript" src="js/Objects/GameSettings.js"></script>
+<script type="text/javascript" src="js/Objects/Game.js"></script>
+<script type="text/javascript" src="js/jq.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/timepicker.js"></script>
+<script type="text/javascript" src="js/functions.js"></script>
+<script type="text/javascript" src="js/Objects/BugEntry.js"></script>
+<script type="text/javascript" src="js/Objects/BugHistory.js"></script>
+<script type="text/javascript">
+	function textInputRestriction(o) {
+		o.target.value = o.target.value.replace(/([^0-9])/g, "");
+	}
+	function gup(name) {
+		name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+		var regexS = "[\\?&]" + name + "=([^&#]*)";
+		var regex = new RegExp(regexS);
+		var results = regex.exec(window.location.href);
+		var regex2 = new RegExp("%20");
+
+		if (results == null)
+			return "";
+		else {
+			var splitted = results[1].split(regex2);
+			return splitted.join(" ");
+		}
+	}
+	var settings = new Settings();
+	settings.get();
+	var gsettings = new GameSettings();
+	gsettings.get();
+	$(document)
+			.ready(
+					function() {
+						$(".optiontab").each(function() {
+							$(this).click(function() {
+								deslectectAll();
+								$(this).addClass("selected");
+								showPage($(this).attr("for"));
+							});
+						});
+						updateDom();
+
+						if (gup("type") != "") {
+							if (gup("type") == "gs") {
+								$("#san_gs_delay")[0].value = gup("delay");
+								$("#san_gs_hide")[0].checked = (gup("autoHide") == 'true');
+								$("#san_gs_limit")[0].value = gup("limit");
+								$("#san_gs_reverse")[0].checked = (gup("reverse") == 'true');
+								$("#dialogtext")
+										.html(
+												"You have successfully imported settings from Game stream. Make sure to save it before leaving this page.");
+								$("#dialog").dialog({
+									modal : true,
+									width : 400,
+									title : "Alert",
+									buttons : {
+										Close : function() {
+											$(this).dialog("close");
+										}
+									}
+								});
+								$("div[for='op-gameposts']").trigger("click");
+							} else {
+								$("#san_notif_delay")[0].value = gup("delay");
+								$("#san_notif_hide")[0].checked = (gup("autoHide") == 'true');
+								$("#san_notif_limit")[0].value = gup("limit");
+								$("#san_notif_reverse")[0].checked = (gup("reverse") == 'true');
+								$("#dialogtext")
+										.html(
+												"You have successfully imported settings from Game notifications. Make sure to save it before leaving this page.");
+								$("#dialog").dialog({
+									modal : true,
+									width : 400,
+									title : "Alert",
+									buttons : {
+										Close : function() {
+											$(this).dialog("close");
+										}
+									}
+								});
+								$("div[for='op-gameposts']").trigger("click");
+							}
+						} else {
+							showPage("op-general");
+						}
+					});
+
+	function clearData() {
+		localStorage["gnc"] = "";
+		localStorage["gamesettings"] = "";
+		historyCache = null;
+		var settings = new Settings();
+		settings.save();
+	}
+
+	function updateSettings() {
+		settings.allow_history = $("#allow_history")[0].checked;
+		settings.max_history_limit = $("#max_history_limit")[0].value;
+		settings.auto_history_notify = $("#auto_history_notify")[0].checked;
+		settings.auto_name_history = $("#auto_name_history")[0].checked;
+		settings.allow_notifications = $("#allow_notifications")[0].checked;
+		settings.notification_type = $("#notification_type")[0].value;
+		settings.notification_time = $("#notification_time")[0].value;
+		settings.notification_default_time = tp.getTime();
+		settings.launch_back_action = $("#launch_back_action")[0].value;
+		settings.max_popup_height = $("#max_popup_height")[0].value;
+		settings.max_selection = $("#max_selection")[0].value;
+		settings.show_partial_message = $("#show_partial_message")[0].checked;
+
+		gsettings.gs_delay = $("#san_gs_delay")[0].value;
+		gsettings.gs_hide = $("#san_gs_hide")[0].checked;
+		gsettings.gs_limit = $("#san_gs_limit")[0].value;
+		gsettings.gs_reverse = $("#san_gs_reverse")[0].checked;
+		gsettings.notif_delay = $("#san_notif_delay")[0].value;
+		gsettings.notif_hide = $("#san_notif_hide")[0].checked;
+		gsettings.notif_limit = $("#san_notif_limit")[0].value;
+		gsettings.notif_reverse = $("#san_notif_reverse")[0].checked;
+
+		settings.save();
+		gsettings.save();
+		$("#savedTime").html("Saved at " + new Date().toLocaleTimeString());
+
+		$("#savedTime").fadeIn("slow").delay(3000).fadeOut("slow");
+		chrome.extension.sendRequest({
+			action : "updateNotifications"
+		});
+	}
+	var tp;
+	function updateDom() {
+		$("#allow_history")[0].checked = settings.allow_history;
+		$("#max_history_limit")[0].value = settings.max_history_limit;
+		$("#auto_history_notify")[0].checked = settings.auto_history_notify;
+		$("#auto_name_history")[0].checked = settings.auto_name_history;
+		$("#allow_notifications")[0].checked = settings.allow_notifications;
+		$("#notification_type")[0].value = settings.notification_type;
+		$("#launch_back_action")[0].value = settings.launch_back_action;
+		$("#notification_time")[0].value = settings.notification_time;
+		$("#max_popup_height")[0].value = settings.max_popup_height;
+		$("#max_selection")[0].value = settings.max_selection;
+		$("#show_partial_message")[0].checked = settings.show_partial_message;
+
+		$("#san_gs_delay")[0].value = gsettings.gs_delay;
+		$("#san_gs_hide")[0].checked = gsettings.gs_hide;
+		$("#san_gs_limit")[0].value = gsettings.gs_limit;
+		$("#san_gs_reverse")[0].checked = gsettings.gs_reverse;
+		$("#san_notif_delay")[0].value = gsettings.notif_delay;
+		$("#san_notif_hide")[0].checked = gsettings.notif_hide;
+		$("#san_notif_limit")[0].value = gsettings.notif_limit;
+		$("#san_notif_reverse")[0].checked = gsettings.notif_reverse;
+
+		$("input[type='text']").keyup(function(e) {
+			textInputRestriction(e);
+		});
+		$("input[type='text']").blur(function(e) {
+			textInputRestriction(e);
+		});
+
+		var defaultTime = settings.notification_default_time;
+		var dtS = splitTime(defaultTime);
+		tp = new TimePicker(dtS[0], dtS[1], dtS[2], dtS[3], $("#timepicker"));
+	}
+	function resetToDefaults() {
+		settings = new Settings();
+		updateDom();
+	}
+	function showPage(pageId) {
+		$(".optionpage").each(function() {
+			if ($(this).attr('id') != pageId) {
+				$(this).fadeOut("slow");
+			}
+		});
+		$("#" + pageId).fadeIn("slow");
+
+	}
+	function deslectectAll() {
+		$(".optiontab").each(function() {
+			$(this).removeClass("selected");
+		});
+	}
+	function debug() {
+		var hb = new BugHistory();
+		hb.get();
+		var html = '';
+		for ( var i = 0; i < hb.bugs.length; i++) {
+			var time = new Date(hb.bugs[i].time).toLocaleString();
+			html += time + "<br><br><pre>" + hb.bugs[i].stackTrace + "<pre>";
+		}
+		$("#debugResult").html(html);
+	}
+	function clearDebug() {
+		localStorage["bugsHistory"] = "";
+		$("#debugResult").html("");
+	}
+</script>
+</head>
+<body>
+	<div id="sidetabs">
+		<div id="header">Options</div>
+		<div for="op-general" class="optiontab selected">General</div>
+		<div for="op-history" class="optiontab">History</div>
+		<div for="op-notifications" class="optiontab">Extension
+			notifications</div>
+		<div for="op-gameposts" class="optiontab">Stream and
+			notifications</div>
+		<div for="op-debug" class="optiontab">Debug</div>
+	</div>
+	<div id="pageoption">
+		<div id="op-general" class="optionpage">
+			<h2>General</h2>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<select id="launch_back_action">
+						<option value="1">History</option>
+						<option value="2">Close</option>
+						<option value="3">Stay</option>
+					</select>
+				</div>
+				<label for="launch_back_action">Performed action after a
+					launch.</label>
+			</div>
+			<div class="explanation">Choose the action you want to be
+				performed after a selection.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="text" id="max_popup_height" size="3" />
+				</div>
+				<label for="max_popup_height">Max window height</label>
+			</div>
+			<div class="explanation">Set the maximum height of the main
+				window (0 means no limitation).</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="text" id="max_selection" size="3" />
+				</div>
+				<label for="max_selection">Max contact selection</label>
+			</div>
+			<div class="explanation">As Google Plus has a limitation of 50
+				contacts per selection you should not change this value.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="checkbox" value="show_partial_message"
+						id="show_partial_message" checked="checked" />
+				</div>
+				<label for="show_partial_message">Show limit exceeded
+					message.</label>
+			</div>
+			<div class="explanation">Show the warning message when you
+				select a circle with too much contacts.</div>
+		</div>
+		<div id="op-history" class="optionpage">
+			<h2>History</h2>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="checkbox" value="allow_history" id="allow_history"
+						checked="checked" />
+				</div>
+				<label for="allow_history">Allow automatic history save</label>
+			</div>
+			<div class="explanation">Disable if you don't want your action
+				to be saved in history.</div>
+
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="text" id="max_history_limit" size="3" />
+				</div>
+				<label for="max_history_limit">Max history limit</label>
+			</div>
+			<div class="explanation">Automatically delete older history
+				entries.</div>
+
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="checkbox" id="auto_history_notify"
+						value="auto_history_notify" checked="checked" />
+				</div>
+				<label for="auto_history_notify">Automatic notification
+					creation</label>
+			</div>
+			<div class="explanation">Create automatically a notification
+				for each history entry.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<div id="timepicker"></div>
+				</div>
+				<label>Default time</label>
+			</div>
+			<div class="explanation">Default time before getting a
+				notification</div>
+
+			<div class="optionline disabled hidden">
+				<div class="inputcontainer">
+					<input type="checkbox" id="auto_name_history"
+						value="auto_name_history" checked="checked" disabled="disabled" />
+				</div>
+				<label for="auto_name_history">Automatically name history
+					entry (Experimental)</label>
+			</div>
+			<div class="explanation disabled hidden">Create automatically a
+				notification for each history entry.</div>
+		</div>
+		<div id="op-notifications" class="optionpage">
+			<h2>Extension notifications</h2>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="checkbox" value="allow_notifications"
+						id="allow_notifications" checked="checked" />
+				</div>
+				<label for="allow_notifications">Allow notifications</label>
+			</div>
+			<div class="explanation">Disable if you don't want to be
+				notified.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<select id="notification_type">
+						<option value="icon">Icon</option>
+						<option value="desktop">Desktop</option>
+					</select>
+				</div>
+				<label for="notification_type">Notifications type</label>
+			</div>
+			<div class="explanation">
+				<ul>
+					<li>Icon : warns you by switching icon color.</li>
+					<li>Desktop : warns you by showing a desktop notification.</li>
+				</ul>
+			</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="text" id="notification_time" size="3" />
+				</div>
+				<label for="notification_time">Notification time</label>
+			</div>
+		</div>
+		<div id="op-gameposts" class="optionpage">
+			<h2>Stream and notifications</h2>
+			<h3>Notifications</h3>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="text" id="san_notif_limit" size="3" />
+				</div>
+				<label for="san_notif_limit">Limit</label>
+			</div>
+			<div class="explanation">Picked notifications number limit.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="checkbox" value="san_notif_hide" id="san_notif_hide"
+						checked="checked" />
+				</div>
+				<label for="san_notif_hide">Hide</label>
+			</div>
+			<div class="explanation">Auto hide picked notifications.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<select id="san_notif_delay">
+						<option value="0">0</option>
+						<option value="200" selected>0.2</option>
+						<option value="500">0.5</option>
+						<option value="2000">2</option>
+						<option value="5000">5</option>
+					</select>
+				</div>
+				<label for="san_notif_delay">Delay</label>
+			</div>
+			<div class="explanation">Delay in seconds between two picked
+				notifications.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="checkbox" value="san_notif_reverse"
+						id="san_notif_reverse" checked="checked" />
+				</div>
+				<label for="san_notif_reverse">Reverse</label>
+			</div>
+			<div class="explanation">Pick notifications from oldest.</div>
+			<h3>Game stream</h3>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="text" id="san_gs_limit" size="3" />
+				</div>
+				<label for="san_gs_limit">Limit</label>
+			</div>
+			<div class="explanation">Picked game posts number limit.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="checkbox" value="san_gs_hide" id="san_gs_hide"
+						checked="checked" />
+				</div>
+				<label for="san_gs_hide">Hide</label>
+			</div>
+			<div class="explanation">Auto hide picked game posts.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<select id="san_gs_delay">
+						<option value="0">0</option>
+						<option value="200" selected>0.2</option>
+						<option value="500">0.5</option>
+						<option value="2000">2</option>
+						<option value="5000">5</option>
+					</select>
+				</div>
+				<label for="san_gs_delay">Delay</label>
+			</div>
+			<div class="explanation">Delay in seconds between two picked
+				game posts.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<input type="checkbox" value="san_gs_reverse" id="san_gs_reverse"
+						checked="checked" />
+				</div>
+				<label for="san_gs_reverse">Reverse</label>
+			</div>
+			<div class="explanation">Pick game posts from the oldest.</div>
+		</div>
+		<div id="op-debug" class="optionpage">
+			<h2>Debug</h2>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<button value="debug" id="debug" onclick="javascript:debug()">Debug</button>
+				</div>
+				<label for="debug">Open the debug infos</label>
+			</div>
+			<div class="explanation">Will display debug infos to send to
+				the developer.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<button value="clear-debug" id="clear-debug"
+						onclick="javascript:clearDebug()">Clear</button>
+				</div>
+				<label for="clear-debug">Clear the debug infos</label>
+			</div>
+			<div class="explanation">Clear all the debug infos. It has no
+				impact on the smooth functionning of the extension.</div>
+			<div class="optionline">
+				<div class="inputcontainer">
+					<button value="clear-data" id="clear-data"
+						onclick="javascript:clearData()">Clear data</button>
+				</div>
+				<label for="clear-debug">Clear all data.</label>
+			</div>
+			<div class="explanation">Do it in case of extension crash.</div>
+			<div id="debugResult"
+				style="height: 300px; overflow: auto; background: #fff;"></div>
+		</div>
+	</div>
+	<div id="save">
+		<div class="button" id="resetButton"
+			onclick="javascript:resetToDefaults()">Reset</div>
+		<div class="button" id="launchButton"
+			onclick="javascript:updateSettings()">Save</div>
+		<div style="display: inline-block; padding-left: 10px;">
+			<p class="explanation savedTime hidden" id="savedTime">Saved at</p>
+		</div>
+
+	</div>
+	<div style="display: inline-block; float: right; margin-right: 20px;">
+		<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+			<input type="hidden" name="cmd" value="_s-xclick"> <input
+				type="hidden" name="encrypted"
+				value="-----BEGIN PKCS7-----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-----END PKCS7-----
+">
+			<input type="image" style="border: none;"
+				src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif"
+				border="0" name="submit"
+				alt="PayPal - The safer, easier way to pay online!"> <img
+				alt="" border="0"
+				src="https://www.paypalobjects.com/fr_FR/i/scr/pixel.gif" width="1"
+				height="1">
+		</form>
+	</div>
+	<div id="dialog" class="hidden">
+		<img src="imgs/warning.png" class="imagewarning" />
+		<p id="dialogtext" style="text-align: justify;"></p>
+	</div>
+</body>
+</html>
