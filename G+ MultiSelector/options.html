@@ -9,6 +9,7 @@
 <script type="text/javascript" src="js/Objects/Settings.js"></script>
 <script type="text/javascript" src="js/Objects/GameSettings.js"></script>
 <script type="text/javascript" src="js/Objects/Game.js"></script>
+<script type="text/javascript" src="js/numericstepper.js"></script>
 <script type="text/javascript" src="js/jq.js"></script>
 <script type="text/javascript" src="js/jquery-ui.js"></script>
 <script type="text/javascript" src="js/timepicker.js"></script>
@@ -40,6 +41,7 @@
 	$(document)
 			.ready(
 					function() {
+						initNumericStepper();
 						$(".optiontab").each(function() {
 							$(this).click(function() {
 								deslectectAll();
@@ -51,7 +53,7 @@
 
 						if (gup("type") != "") {
 							if (gup("type") == "gs") {
-								$("#san_gs_delay")[0].value = gup("delay");
+								$("#san_gs_delay")[0].value = gup("delay")/1000;
 								$("#san_gs_hide")[0].checked = (gup("autoHide") == 'true');
 								$("#san_gs_limit")[0].value = gup("limit");
 								$("#san_gs_reverse")[0].checked = (gup("reverse") == 'true');
@@ -70,7 +72,7 @@
 								});
 								$("div[for='op-gameposts']").trigger("click");
 							} else {
-								$("#san_notif_delay")[0].value = gup("delay");
+								$("#san_notif_delay")[0].value = gup("delay")/1000;
 								$("#san_notif_hide")[0].checked = (gup("autoHide") == 'true');
 								$("#san_notif_limit")[0].value = gup("limit");
 								$("#san_notif_reverse")[0].checked = (gup("reverse") == 'true');
@@ -116,11 +118,11 @@
 		settings.max_selection = $("#max_selection")[0].value;
 		settings.show_partial_message = $("#show_partial_message")[0].checked;
 
-		gsettings.gs_delay = $("#san_gs_delay")[0].value;
+		gsettings.gs_delay = $("#san_gs_delay")[0].value*1000;
 		gsettings.gs_hide = $("#san_gs_hide")[0].checked;
 		gsettings.gs_limit = $("#san_gs_limit")[0].value;
 		gsettings.gs_reverse = $("#san_gs_reverse")[0].checked;
-		gsettings.notif_delay = $("#san_notif_delay")[0].value;
+		gsettings.notif_delay = $("#san_notif_delay")[0].value*1000;
 		gsettings.notif_hide = $("#san_notif_hide")[0].checked;
 		gsettings.notif_limit = $("#san_notif_limit")[0].value;
 		gsettings.notif_reverse = $("#san_notif_reverse")[0].checked;
@@ -148,11 +150,11 @@
 		$("#max_selection")[0].value = settings.max_selection;
 		$("#show_partial_message")[0].checked = settings.show_partial_message;
 
-		$("#san_gs_delay")[0].value = gsettings.gs_delay;
+		$("#san_gs_delay")[0].value = gsettings.gs_delay/1000;
 		$("#san_gs_hide")[0].checked = gsettings.gs_hide;
 		$("#san_gs_limit")[0].value = gsettings.gs_limit;
 		$("#san_gs_reverse")[0].checked = gsettings.gs_reverse;
-		$("#san_notif_delay")[0].value = gsettings.notif_delay;
+		$("#san_notif_delay")[0].value = gsettings.notif_delay/1000;
 		$("#san_notif_hide")[0].checked = gsettings.notif_hide;
 		$("#san_notif_limit")[0].value = gsettings.notif_limit;
 		$("#san_notif_reverse")[0].checked = gsettings.notif_reverse;
@@ -360,13 +362,11 @@
 			<div class="explanation">Auto hide picked notifications.</div>
 			<div class="optionline">
 				<div class="inputcontainer">
-					<select id="san_notif_delay">
-						<option value="0">0</option>
-						<option value="200" selected>0.2</option>
-						<option value="500">0.5</option>
-						<option value="2000">2</option>
-						<option value="5000">5</option>
-					</select>
+					<span class="numeric-stepper">
+						<input id="san_notif_delay" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off">
+						<button type="submit" name="ns_button_1_0" value="1" class="plus">+</button>
+						<button type="submit" name="ns_button_2_0" value="-1" class="minus">-</button>
+					</span>
 				</div>
 				<label for="san_notif_delay">Delay</label>
 			</div>
@@ -398,13 +398,11 @@
 			<div class="explanation">Auto hide picked game posts.</div>
 			<div class="optionline">
 				<div class="inputcontainer">
-					<select id="san_gs_delay">
-						<option value="0">0</option>
-						<option value="200" selected>0.2</option>
-						<option value="500">0.5</option>
-						<option value="2000">2</option>
-						<option value="5000">5</option>
-					</select>
+					<span class="numeric-stepper">
+						<input id="san_gs_delay" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off">
+						<button type="submit" name="ns_button_1_0" value="1" class="plus">+</button>
+						<button type="submit" name="ns_button_2_0" value="-1" class="minus">-</button>
+					</span>
 				</div>
 				<label for="san_gs_delay">Delay</label>
 			</div>

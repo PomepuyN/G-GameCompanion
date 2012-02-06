@@ -212,14 +212,14 @@ function majSettings(selectedGame) {
 			}
 		});
 		
-		$('select[id*="openDelay"]', $(gsNode)).each(function() {
+		$('input[id*="openDelay"]', $(gsNode)).each(function() {
 			if (gsettings.gs_delay != undefined) {
-				$(this).val(gsettings.gs_delay);
+				$(this).val(gsettings.gs_delay/1000);
 			}
 		});
-		$('select[id*="openDelay"]', $(notifNode)).each(function() {
+		$('input[id*="openDelay"]', $(notifNode)).each(function() {
 			if (gsettings.notif_delay != undefined) {
-				$(this).val(gsettings.notif_delay);
+				$(this).val(gsettings.notif_delay/1000);
 			}
 		});
 		
@@ -620,9 +620,9 @@ function gs_addGame(g) {
 			+ '" type="text" value="5" style="width:25px;"/></td></tr>'
 			+ '<tr><td align="right"><label for="openDelay'
 			+ slugify(g)
-			+ '">Delay between two posts opening </label></td><td><select id="openDelay'
+			+ '">Delay between two posts opening </label></td><td><span class="numeric-stepper"><input id="openDelay'
 			+ slugify(g)
-			+ '" value="delay"><option value="0">0</option><option value="200" selected>0.2</option><option value="500">0.5</option><option value="2000">2</option><option value="5000">5</option><option value="7000">7</option><option value="10000">10</option></select></td></tr>'
+			+ '" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off"><button type="submit" name="ns_button_1_0" value="1" class="plus">+</button><button type="submit" name="ns_button_2_0" value="-1" class="minus">-</button></span></td>'
 			+ '<tr><td align="right"><label for="autoHide'
 			+ slugify(g)
 			+ '">Automatically hide the posts </label></td><td><input id="autoHide'
@@ -703,7 +703,7 @@ function gs_addGame(g) {
 			+ '">Ï</div>' + '</div>' + '<div id="cgncGST-' + slugify(g)
 			+ '" class="topList"></div>' + '</div>';
 	$("#gncGSCP").append(html);
-
+	initNumericStepper();
 	$("#openLimit" + slugify(g)).keyup(function(e) {
 		textInputRestriction(e);
 	});
@@ -844,7 +844,7 @@ function addGameToSettings(g) {
 function gs_saveToOptions(slugGame) {
 	settingsAsBeenSet = false;
 	var limit = $("#openLimit" + slugGame)[0].value;
-	var delay = $("#openDelay" + slugGame)[0].value;
+	var delay = $("#openDelay" + slugGame)[0].value*1000;
 	var autoHide = $("#autoHide" + slugGame)[0].checked;
 	var plusOne = $("#plusOne" + slugGame)[0].checked;
 	var reverse = $("#reverse" + slugGame)[0].checked;
@@ -1066,7 +1066,7 @@ function toggleGSMoreHidden(g) {
 function gs_pickupPosts(slugGame) {
 	scrollTop = $("body").scrollTop();
 	var limit = $("#openLimit" + slugGame)[0].value;
-	var delay = $("#openDelay" + slugGame)[0].value;
+	var delay = $("#openDelay" + slugGame)[0].value*1000;
 	var autoHide = $("#autoHide" + slugGame)[0].checked;
 	var plusOne = $("#plusOne" + slugGame)[0].checked;
 	var reverse = $("#reverse" + slugGame)[0].checked;
@@ -1456,9 +1456,9 @@ function n_addGame(g) {
 			+ '" type="text" value="5" style="width:25px;"/></td>'
 			+ '<tr><td align="right"><label for="openDelay'
 			+ slugify(g)
-			+ '">Delay between two notifications opening </label></td><td><select id="openDelay'
+			+ '">Delay between two notifications opening </label></td><td><span class="numeric-stepper"><input id="openDelay'
 			+ slugify(g)
-			+ '" value="delay"><option value="0">0</option><option value="200" selected>0.2</option><option value="500">0.5</option><option value="2000">2</option><option value="5000">5</option><option value="7000">7</option><option value="10000">10</option></select></td>'
+			+ '" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off"><button type="submit" name="ns_button_1_0" value="1" class="plus">+</button><button type="submit" name="ns_button_2_0" value="-1" class="minus">-</button></span></td>'
 			+ '<tr><td align="right"><label for="autoHide'
 			+ slugify(g)
 			+ '">Automatically hide the notifications </label></td><td><input id="autoHide'
@@ -1533,6 +1533,7 @@ function n_addGame(g) {
 			+ slugify(g) + '" class="topList"></div>' + '</div>';
 	$("#gncCP").append(html);
 
+	initNumericStepper();
 	$("#openLimit" + slugify(g)).keyup(function(e) {
 		textInputRestriction(e);
 	});
@@ -1709,7 +1710,7 @@ var notifToProcess = new Array();
 function n_pickupNotifications(slugGame) {
 	scrollTop = $("body").scrollTop();
 	var limit = $("#openLimit" + slugGame)[0].value;
-	var delay = $("#openDelay" + slugGame)[0].value;
+	var delay = $("#openDelay" + slugGame)[0].value*1000;
 	var autoHide = $("#autoHide" + slugGame)[0].checked;
 	var reverse = $("#reverse" + slugGame)[0].checked;
 
@@ -1872,7 +1873,7 @@ function n_reset() {
 function n_saveToOptions(slugGame) {
 	settingsAsBeenSet = false;
 	var limit = $("#openLimit" + slugGame)[0].value;
-	var delay = $("#openDelay" + slugGame)[0].value;
+	var delay = $("#openDelay" + slugGame)[0].value*1000;
 	var autoHide = $("#autoHide" + slugGame)[0].checked;
 	var reverse = $("#reverse" + slugGame)[0].checked;
 	chrome.extension.sendRequest({

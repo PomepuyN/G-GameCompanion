@@ -27,6 +27,7 @@
         "js/Objects/Circle.js",
         "js/Objects/Contact.js",
         "js/Objects/CircleSelection.js",
+        "js/numericstepper.js",
         "js/jquery-ui.js",
         "js/gsandn.js",
         "js/gns.js"],
