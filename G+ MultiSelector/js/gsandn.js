@@ -1660,6 +1660,10 @@ function n_addGame(g) {
 	$("#gnc_hide_all_btn_" + slugify(g)).click(function() {
 		n_hideAll(slugify(g));
 	});
+	$("#gnc_hide_preset_btn_" + slugify(g)).unbind("click");
+	$("#gnc_hide_preset_btn_" + slugify(g)).click(function() {
+		n_hidePreset(slugify(g));
+	});
 	$("#gncN_save" + slugify(g)).unbind("click");
 	$("#gncN_save" + slugify(g)).click(function() {
 		n_saveToOptions(slugify(g));
@@ -1697,6 +1701,45 @@ function n_hideAll(g) {
 		n_hideNotification(notif);
 		setTimeout(function() {
 			n_hideAll(g);
+		}, 200);
+	}
+	n_resetCounts();
+}
+
+/**
+ * Hide the posts matching preset
+ * @param g
+ */
+function n_hidePreset(g) {
+	var gameContainer = $("#cgncT-" + g);
+	var posts = $("." + dn_notificationNodeClass, gameContainer);
+	console.log(posts);
+	
+	var toHide = new Array();
+	
+	posts.each(function(){
+			var skip = false;
+			// Is it filtered ?
+			var notifText = $("div[class*='" + dn_textNotificationContainer + "']",
+					$(this)).text();
+			if (!computeFilterContaining($("#n-filterIn" + g).val(),
+					notifText)
+					|| !computeFilterNotContaining($("#n-filterOut" + g)
+							.val(), notifText)) {
+				skip = true;
+			}
+			if (!skip){
+				toHide.push($(this));
+			}
+	});
+	
+	
+	
+	if (toHide.length > 0) {
+		var notif = n_parseNotificationNode(toHide[0]);
+		n_hideNotification(notif);
+		setTimeout(function() {
+			n_hidePreset(g);
 		}, 200);
 	}
 	n_resetCounts();
