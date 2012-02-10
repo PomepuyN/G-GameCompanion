@@ -1713,7 +1713,6 @@ function n_hideAll(g) {
 function n_hidePreset(g) {
 	var gameContainer = $("#cgncT-" + g);
 	var posts = $("." + dn_notificationNodeClass, gameContainer);
-	console.log(posts);
 	
 	var toHide = new Array();
 	

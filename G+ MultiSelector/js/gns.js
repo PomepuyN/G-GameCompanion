@@ -389,7 +389,6 @@ function launchSelection(members, time, partial,circleCode) {
 				if ($(this).width() > 0){
 					
 					CPIframe = $(this);
-					console.log(CPIframe);
 					CPIframe.contents().find("."+classScrollDiv).each(function(index) {
 						scrollDivHeight = $(this).height();
 						scrollDiv = $(this)[0];
