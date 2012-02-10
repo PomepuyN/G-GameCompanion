@@ -2,6 +2,12 @@
 	font-family: Distro;
 	src: url('chrome-extension://__MSG_@@extension_id__/fonts/distro.ttf');
 }
+
+@font-face {
+	font-family: pointers;
+	src: url('chrome-extension://__MSG_@@extension_id__/fonts/Pointers.ttf');
+}
+
 h1 {
 	font-family: Distro;
 	text-shadow: 0px 0px 3px #4d90fe; 
@@ -348,7 +354,10 @@ p {
 	text-align:center;
 	position:absolute;
 	right:0;
+	font-family: pointers;
+	line-height: 17px;
 }
 .numeric-stepper button.minus {
 	bottom:0;
+	line-height: 5px;
 }

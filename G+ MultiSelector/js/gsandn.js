@@ -603,6 +603,9 @@ function gs_addGame(g) {
 			+ '<div class="button right" id="gncGS_hide_all_btn_'
 			+ slugify(g)
 			+ '">Hide all</div>'
+			+ '<div class="button right" id="gncGS_hide_preset_btn_'
+			+ slugify(g)
+			+ '">Hide posts matching preset</div>'
 			+ '<div class="hidden moreoptions" id="gncGSmoreoptions-'
 			+ slugify(g)
 			+ '">'
@@ -622,7 +625,7 @@ function gs_addGame(g) {
 			+ slugify(g)
 			+ '">Delay between two posts opening </label></td><td><span class="numeric-stepper"><input id="openDelay'
 			+ slugify(g)
-			+ '" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off"><button type="submit" name="ns_button_1_0" value="1" class="plus">+</button><button type="submit" name="ns_button_2_0" value="-1" class="minus">-</button></span></td>'
+			+ '" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off"><button type="submit" name="ns_button_1_0" value="1" class="plus">A</button><button type="submit" name="ns_button_2_0" value="-1" class="minus">Å</button></span></td>'
 			+ '<tr><td align="right"><label for="autoHide'
 			+ slugify(g)
 			+ '">Automatically hide the posts </label></td><td><input id="autoHide'
@@ -779,6 +782,10 @@ function gs_addGame(g) {
 	$("#gncGS_hide_all_btn_" + slugify(g)).unbind("click");
 	$("#gncGS_hide_all_btn_" + slugify(g)).click(function() {
 		gs_hideAll(slugify(g));
+	});
+	$("#gncGS_hide_preset_btn_" + slugify(g)).unbind("click");
+	$("#gncGS_hide_preset_btn_" + slugify(g)).click(function() {
+		gs_hidePreset(slugify(g));
 	});
 	$("#gncGS_save" + slugify(g)).unbind("click");
 	$("#gncGS_save" + slugify(g)).click(function() {
@@ -975,6 +982,44 @@ function gs_hideAll(g) {
 		hideStreamPost(notif);
 		setTimeout(function() {
 			gs_hideAll(g);
+		}, 200);
+	}
+	resetGSCounts();
+}
+
+/**
+ * Hide the posts matching preset
+ * @param g
+ */
+function gs_hidePreset(g) {
+	var gameContainer = $("#cgncGST-" + g);
+	var posts = $("." + d_streamPostNodeClass, gameContainer);
+	
+	var toHide = new Array();
+	
+	posts.each(function(){
+			var skip = false;
+			// Is it filtered ?
+			var notifText = $("div[class*='" + d_streamPostLinkContainer + "']",
+					$(this)).text();
+			if (!computeFilterContaining($("#gs-filterIn" + g).val(),
+					notifText)
+					|| !computeFilterNotContaining($("#gs-filterOut" + g)
+							.val(), notifText)) {
+				skip = true;
+			}
+			if (!skip){
+				toHide.push($(this));
+			}
+	});
+	
+	
+	
+	if (toHide.length > 0) {
+		var notif = parseStreamPostNode(toHide[0]);
+		hideStreamPost(notif);
+		setTimeout(function() {
+			gs_hidePreset(g);
 		}, 200);
 	}
 	resetGSCounts();
@@ -1436,6 +1481,9 @@ function n_addGame(g) {
 			+ '<div class="button right" id="gnc_hide_all_btn_'
 			+ slugify(g)
 			+ '">Hide all</div>'
+			+ '<div class="button right" id="gnc_hide_preset_btn_'
+			+ slugify(g)
+			+ '">Hide posts matching preset</div>'
 			+ '<div class="hidden moreoptions" id="gncmoreoptions-'
 			+ slugify(g)
 			+ '">'
@@ -1458,7 +1506,7 @@ function n_addGame(g) {
 			+ slugify(g)
 			+ '">Delay between two notifications opening </label></td><td><span class="numeric-stepper"><input id="openDelay'
 			+ slugify(g)
-			+ '" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off"><button type="submit" name="ns_button_1_0" value="1" class="plus">+</button><button type="submit" name="ns_button_2_0" value="-1" class="minus">-</button></span></td>'
+			+ '" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off"><button type="submit" name="ns_button_1_0" value="1" class="plus">A</button><button type="submit" name="ns_button_2_0" value="-1" class="minus">Å</button></span></td>'
 			+ '<tr><td align="right"><label for="autoHide'
 			+ slugify(g)
 			+ '">Automatically hide the notifications </label></td><td><input id="autoHide'
