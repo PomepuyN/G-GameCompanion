@@ -22,6 +22,7 @@
 <script type="text/javascript" src="js/Objects/BugHistory.js"></script>
 <script type="text/javascript">
 var tp;
+var inCircle = false;
 	$(document).ready(function() {
 		chrome.tabs.executeScript(null, {
 			code : "importCircle(0)"
@@ -32,6 +33,11 @@ var tp;
 		var details = chrome.app.getDetails();
 	    $("#appVersion").html("V "+details.version);
 		
+	    //Geting the current page
+	    chrome.extension.sendRequest({
+			action : 'getOpenedPage'
+		});
+	    var inCircle = false;
 		var settings = new Settings();
 		settings.get();
 		var defaultTime = settings.notification_default_time;
@@ -132,6 +138,10 @@ var tp;
 			var text = request.text;
 			var error = request.error;
 			$("#ajaxError").html("<p>An error has occured. Please check your connection or try reloading the tab.</p><p>Error sent : "+request.text+"</p>");
+		}
+		if (request.action == "sendCurrentPage") {
+			console.log(request.inCircle);
+			inCircle = request.inCircle;
 		}
 		if (request.action == "performed") {
 			var members = JSON.parse(request.members);
@@ -425,7 +435,7 @@ var tp;
 			circleSelection.circle = circleSelected.code;
 			
 			// Looking for limit
-			if (circleSelected.members.length > settings.max_selection){
+			if (circleSelected.members.length > settings.max_selection && !inCircle){
 				
 				// Look for a partial selection
 				

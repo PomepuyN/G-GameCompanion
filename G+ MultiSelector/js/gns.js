@@ -52,6 +52,12 @@ var multiAccountData =  new Array();
 var multiAccountIndex = 0;
 var multiAccountUsers = new Array();
 
+//Classes used to select in the circle page
+var myCirclesContainer = "oz-sg-elements";
+var myCirclesContact = "AkM0qf";
+var myCirclesSelectedContact = "Sf-I";
+
+
 var gplustoken = null;
 
 
@@ -408,6 +414,21 @@ function launchSelection(members, time, partial,circleCode) {
 		scrollTheDiv(scrollDiv);
 		CPIframe.attr("gnc","true");
 		sendPerformed(members, time, partial, circleCode);
+	} else if($("."+myCirclesContainer).length > 0) {
+		cont = $("."+myCirclesContainer)[0];
+		scrollDiv = $(cont).parent()[0];
+		
+		scrollDiv.scrollTop = 100;
+		
+		pickVisibleContactsInMyCircles(cont);
+		$(scrollDiv).scroll(function() {
+			pickVisibleContactsInMyCircles(cont);
+		});
+		
+		scrollTheDiv(scrollDiv);
+		sendPerformed(members, time, partial, circleCode);
+		
+		
 	} else {
 		sendNotPerformed();
 	}
@@ -426,6 +447,19 @@ function pickVisibleContacts(){
 		}
 	});
 }
+// Selects all the contacts in my circles !
+function pickVisibleContactsInMyCircles(cont){
+	$(cont).contents().find("."+myCirclesContact).each(function(index) {
+		if (!$(this).hasClass(myCirclesSelectedContact)){
+			for (var i=0; i < selectedMembers.length;i++){
+				if (parseInt($(this).attr("oid")) == parseInt(selectedMembers[i])){
+					dispatchMouseEvent($(this)[0], 'mousedown', true, true);
+					dispatchMouseEvent($(this)[0], 'mouseup', true, true);
+				}
+			}
+		}
+	});
+}
 
 var scrollTimer;
 var lastScroll;
@@ -435,6 +469,7 @@ var lastScroll;
  */
 function scrollTheDiv(el){ 
 	el.scrollTop += 200;
+	//console.log(el.scrollTop);
 	if (el.scrollTop != lastScroll){
 		scrollTimer = setTimeout('scrollTheDiv(scrollDiv)', 50);
 	} else {

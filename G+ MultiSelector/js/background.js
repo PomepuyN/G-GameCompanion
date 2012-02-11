@@ -24,6 +24,7 @@
 var notifTimes = new Array();
 	var settings;
 	var notifications = new Array();
+	var inCircles = new Array();
 
 
 	/**
@@ -130,22 +131,50 @@ var notifTimes = new Array();
 				var reg2 = new RegExp(
 						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*games",
 						"i");
+				var regMyCircles = new RegExp(
+						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*circles",
+				"i");
 				if (tab.url.match(reg2) && !tab.url.match(reg)) {
+					console.log("streamUpdated");
 					chrome.tabs.sendRequest(tabId, {
 						action : 'streamUpdated',
 						globalNotif : globalNotif
 					});
 				} else if (tab.url.indexOf(limiter) > -1
 						&& tab.url.indexOf("games/notifications") > -1) {
+					console.log("notificationsUpdated");
 					chrome.tabs.sendRequest(tabId, {
 						action : 'notificationsUpdated'
 					});
 				} else {
+					console.log("otherUpdated");
 					chrome.tabs.sendRequest(tabId, {
 						action : 'otherUpdated'
 					});
 				}
-
+				
+				var found = false;
+				for ( var i = 0; i < inCircles.length; i++) {
+					entry = inCircles[i];
+					if (entry.tabId == tabId){
+						if (tab.url.match(regMyCircles)) {
+							entry.res = true;
+						} else {
+							entry.res = false;
+						}
+						found = true;
+					}
+				}
+				if (!found){
+					entry = new Object();
+					entry.tabId = tabId;
+					if (tab.url.match(regMyCircles)) {
+						entry.res = true;
+					} else {
+						entry.val = false;
+					}
+					inCircles.push(entry);
+				}
 			}
 
 			updateNotifs();
@@ -179,6 +208,18 @@ var notifTimes = new Array();
 		}
 	}
 
+	/**
+	 * Update the selected tab
+	 */
+	var selectedTab;
+	chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo) {
+		chrome.tabs.get(tabId, function(tab){
+			var limiter = 'plus.google.com';
+			if (tab.url.indexOf(limiter) > -1){
+				selectedTab = tab.id;
+			}
+		});
+	});
 	
 	/**
 	 * Getting requests from the extensions's other parts
@@ -264,6 +305,34 @@ var notifTimes = new Array();
 				gsettings : gsettingsS,
 				games : false
 			});
+		}
+
+		/**
+		 * What is the opened page ?
+		 */
+		if (request.action == "getOpenedPage") {
+			
+			console.log(selectedTab);
+			//Determine if tab is in circle
+			chrome.tabs.get(selectedTab, function(tab){
+				console.log(tab.url);
+				var regMyCircles = new RegExp(
+						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*circles",
+				"i");
+				var res;
+				if (tab.url.match(regMyCircles)) {
+					res = true;
+				} else {
+					res = false;
+				}
+				chrome.extension.sendRequest({
+					action : 'sendCurrentPage',
+					inCircle : res
+				});
+			});
+			
+			
+			
 		}
 		
 		
