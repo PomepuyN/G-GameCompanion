@@ -131,6 +131,22 @@ function look4MultiAccounts(){
 }
 
 
+var messageToSend = "";
+function addContactsToCircle(contactsToAdd, circleId, circlename) {
+	var contactsAddedString = "[[";
+	for ( var i = 0; i < contactsToAdd.length; i++) {
+		if (i > 0) {
+			contactsAddedString+=",";
+		}
+		contactsAddedString+='[[null,null,"'+contactsToAdd[i]+'"],"",[]]';
+	}
+	contactsAddedString+=']]';
+	$.post(
+			'https://plus.google.com/_/socialgraph/mutate/modifymemberships/', 
+			'a=[[["' + circleId + '"]]]&m='+contactsAddedString+'&at=' + gplustoken + '&r=[[]]', function () {openAlert("Contacts added", messageToSend);},'text');
+	messageToSend = contactsToAdd.length+" contacts have been added to the "+circlename+" circle.";
+	
+}
 
 //Get the circles from G+
 function importCircle(userId){
@@ -228,6 +244,9 @@ function importCircle(userId){
 				//Send data to popup
 				sendData2Ext(JSON.stringify(circles), JSON.stringify(members));
 
+				if (waiting4Circle != undefined && waiting4Circle == true){
+					populateCirclesToAddPeople();
+				}
 
 			}
 		});

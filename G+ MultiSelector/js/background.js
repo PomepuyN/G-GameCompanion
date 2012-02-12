@@ -134,20 +134,26 @@ var notifTimes = new Array();
 				var regMyCircles = new RegExp(
 						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*circles",
 				"i");
+				var regGameDirectory = new RegExp(
+						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*games\/directory",
+				"i");
+				if (tab.url.match(regGameDirectory)) {
+					chrome.tabs.sendRequest(tabId, {
+						action : 'gdUpdated',
+						globalNotif : globalNotif
+					});
+				}
 				if (tab.url.match(reg2) && !tab.url.match(reg)) {
-					console.log("streamUpdated");
 					chrome.tabs.sendRequest(tabId, {
 						action : 'streamUpdated',
 						globalNotif : globalNotif
 					});
 				} else if (tab.url.indexOf(limiter) > -1
 						&& tab.url.indexOf("games/notifications") > -1) {
-					console.log("notificationsUpdated");
 					chrome.tabs.sendRequest(tabId, {
 						action : 'notificationsUpdated'
 					});
 				} else {
-					console.log("otherUpdated");
 					chrome.tabs.sendRequest(tabId, {
 						action : 'otherUpdated'
 					});
@@ -312,10 +318,8 @@ var notifTimes = new Array();
 		 */
 		if (request.action == "getOpenedPage") {
 			
-			console.log(selectedTab);
 			//Determine if tab is in circle
 			chrome.tabs.get(selectedTab, function(tab){
-				console.log(tab.url);
 				var regMyCircles = new RegExp(
 						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*circles",
 				"i");

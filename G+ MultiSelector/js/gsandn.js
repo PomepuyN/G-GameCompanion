@@ -45,6 +45,11 @@ var d_plusoneClass = "BRowJd"; // ok
 var d_plusloaderClass = "k-Qf-Va-sb-Aa"; // ok
 var d_myNameClass = "k-Qf-pu-LS"; // ok
 
+//Add contacts from the people having played to a game
+var peoplePlayedDivClass = "Y-S";
+var peoplePlayedOkButtonClass = "Y-S-qa";
+var peoplePlayedContactDivClass = "AkM0qf";
+
 // Parent div of a notification
 var dn_notificationContainer = "ZuC1te";
 var dn_notificationGameTextClass = "aocudf";
@@ -76,6 +81,9 @@ var selectedNotifTab = 0;
 var selectedGame = null;
 var selectedPresets = new Array();
 var scrollTop = 0;
+
+var peoplePlayedListener = false;
+var peoplePlayedAddedButton = false;
 
 /**
  * Ask for the settings
@@ -112,7 +120,30 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		if (myId == undefined || myId == "") {
 			console.log("Unable to find my ID :(");
 		}
+	}
 
+	if (request.action == "streamUpdated" || request.action == "gdUpdated") {
+		//Launching the people played listener
+		if (!peoplePlayedListener){
+			peoplePlayedListener = true;
+			$("body").bind('DOMNodeInserted', function(e) {
+				if ($("."+peoplePlayedDivClass).length >0 ){
+					$($("button[name='ok']"),'.'+peoplePlayedOkButtonClass).html("Close");
+					if (!peoplePlayedAddedButton){
+						peoplePlayedAddedButton = true;
+						$("."+peoplePlayedOkButtonClass).append('<button id="gcc-addPeopleToCircle" name="addCircle" class="a-wc-na">Add all to a circle</button>');
+						$("#gcc-addPeopleToCircle").click(function(e){
+							openAddPeopleToCircle($("."+peoplePlayedDivClass));
+							e.stopPropagation();
+						});
+						$("."+peoplePlayedOkButtonClass).click(function(){
+							peoplePlayedAddedButton = false;
+						});
+					}
+				}
+			});
+		}
+		
 	}
 	/**
 	 * The notifications page has been updated
@@ -158,6 +189,71 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
  * COMMON FUNCTIONS (stream and notifications)
  * 
  */
+var waiting4Circle = false;
+var contactsInDiv = new Array();
+function openAddPeopleToCircle(){
+	waiting4Circle = true;
+	importCircle(myId);
+	
+	contactsInDiv = new Array();
+	scrollDiv=$("."+classScrollDiv)[0];
+	
+	scrollTheDiv($("."+classScrollDiv)[0]);
+	addVisibleContacts2ContactsInDiv();
+	$("."+classScrollDiv).scroll(function() {
+		addVisibleContacts2ContactsInDiv();
+	});
+	
+}
+
+function addVisibleContacts2ContactsInDiv(){
+	$("."+peoplePlayedContactDivClass, $("."+peoplePlayedDivClass)).each(function(){
+		if ($(this).attr("oid")!=undefined){
+			var alreadyAdded = false;
+			for ( var i = 0; i < contactsInDiv.length; i++) {
+				if (contactsInDiv[i] == $(this).attr("oid")) {
+					alreadyAdded = true;
+					break;
+				}
+			}
+			if (!alreadyAdded)
+			contactsInDiv.push($(this).attr("oid"));
+		}
+	});
+}
+
+function populateCirclesToAddPeople(){
+	html='<div class="circleContainer">';
+	for ( var i = 0; i < circles.length; i++) {
+		html+='<div id="circleButtonDiv" class="circleButtonDiv">'+
+				'<div class="circleButton" id="addPeopleButton-'+i+'" type="checkbox" oid="'+circles[i].code+'" >'+
+					'<div class="stt" oid="'+circles[i].code+'"></div>'+
+					circles[i].name+
+				'</div>'+
+			'</div>';
+	}
+	html+="</div>";
+	$(".stt").each(function(){
+		$(this).click(function(e){
+			comparePPACircle($(this).attr("oid"));
+			e.stopPropagation();
+		});
+	});
+	$("."+peoplePlayedDivClass).append(html);
+	$("div[id*='addPeopleButton']").click(function(){
+		if (confirm('This will add '+contactsInDiv.length+' contacts in the '+$(this).text()+' circle. Are you sure ?')){
+			circleCode = $(this).attr("oid");
+			addContactsToCircle(contactsInDiv,circleCode, $(this).text());
+			dispatchMouseEvent($($("button[name='ok']"),'.'+peoplePlayedOkButtonClass)[0], 'mouseover', true, true);
+			dispatchMouseEvent($($("button[name='ok']"),'.'+peoplePlayedOkButtonClass)[0], 'mousedown', true, true);
+			dispatchMouseEvent($($("button[name='ok']"),'.'+peoplePlayedOkButtonClass)[0], 'mouseup', true, true);
+			dispatchMouseEvent($($("button[name='ok']"),'.'+peoplePlayedOkButtonClass)[0], 'click', true, true);
+			peoplePlayedAddedButton = false;
+		}
+	});
+	waiting4Circle = false;
+}
+
  var settingsAsBeenSet = false;
  /**
   * Update the settings in the page from the retrieved one

@@ -140,7 +140,6 @@ var inCircle = false;
 			$("#ajaxError").html("<p>An error has occured. Please check your connection or try reloading the tab.</p><p>Error sent : "+request.text+"</p>");
 		}
 		if (request.action == "sendCurrentPage") {
-			console.log(request.inCircle);
 			inCircle = request.inCircle;
 		}
 		if (request.action == "performed") {
