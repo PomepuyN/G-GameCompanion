@@ -1,6 +1,6 @@
 {
 	"name": "G+ Game Companion", 
-	"version": "1.7.8",
+	"version": "1.7.9",
 	"update_url": "http://gplusnc.nicolaspomepuy.fr/updates.xml",
 	"icons": {
     	"128": "icon128.png",
@@ -27,6 +27,7 @@
         "js/Objects/Circle.js",
         "js/Objects/Contact.js",
         "js/Objects/CircleSelection.js",
+        "js/Objects/Game.js",
         "js/numericstepper.js",
         "js/jquery-ui.js",
         "js/gsandn.js",

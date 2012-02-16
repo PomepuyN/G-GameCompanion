@@ -38,63 +38,57 @@
 	settings.get();
 	var gsettings = new GameSettings();
 	gsettings.get();
-	$(document)
-			.ready(
-					function() {
-						initNumericStepper();
-						$(".optiontab").each(function() {
-							$(this).click(function() {
-								deslectectAll();
-								$(this).addClass("selected");
-								showPage($(this).attr("for"));
-							});
-						});
-						updateDom();
+	$(document).ready(function() {
+		initNumericStepper();
+		$(".optiontab").each(function() {
+			$(this).click(function() {
+				deslectectAll();
+				$(this).addClass("selected");
+				showPage($(this).attr("for"));
+			});
+		});
+		updateDom();
 
-						if (gup("type") != "") {
-							if (gup("type") == "gs") {
-								$("#san_gs_delay")[0].value = gup("delay")/1000;
-								$("#san_gs_hide")[0].checked = (gup("autoHide") == 'true');
-								$("#san_gs_limit")[0].value = gup("limit");
-								$("#san_gs_reverse")[0].checked = (gup("reverse") == 'true');
-								$("#dialogtext")
-										.html(
-												"You have successfully imported settings from Game stream. Make sure to save it before leaving this page.");
-								$("#dialog").dialog({
-									modal : true,
-									width : 400,
-									title : "Alert",
-									buttons : {
-										Close : function() {
-											$(this).dialog("close");
-										}
-									}
-								});
-								$("div[for='op-gameposts']").trigger("click");
-							} else {
-								$("#san_notif_delay")[0].value = gup("delay")/1000;
-								$("#san_notif_hide")[0].checked = (gup("autoHide") == 'true');
-								$("#san_notif_limit")[0].value = gup("limit");
-								$("#san_notif_reverse")[0].checked = (gup("reverse") == 'true');
-								$("#dialogtext")
-										.html(
-												"You have successfully imported settings from Game notifications. Make sure to save it before leaving this page.");
-								$("#dialog").dialog({
-									modal : true,
-									width : 400,
-									title : "Alert",
-									buttons : {
-										Close : function() {
-											$(this).dialog("close");
-										}
-									}
-								});
-								$("div[for='op-gameposts']").trigger("click");
-							}
-						} else {
-							showPage("op-general");
+		if (gup("type") != "") {
+			if (gup("type") == "gs") {
+				$("#san_gs_delay")[0].value = gup("delay") / 1000;
+				$("#san_gs_hide")[0].checked = (gup("autoHide") == 'true');
+				$("#san_gs_limit")[0].value = gup("limit");
+				$("#san_gs_reverse")[0].checked = (gup("reverse") == 'true');
+				$("#dialogtext").html("You have successfully imported settings from Game stream. Make sure to save it before leaving this page.");
+				$("#dialog").dialog({
+					modal : true,
+					width : 400,
+					title : "Alert",
+					buttons : {
+						Close : function() {
+							$(this).dialog("close");
 						}
-					});
+					}
+				});
+				$("div[for='op-gameposts']").trigger("click");
+			} else {
+				$("#san_notif_delay")[0].value = gup("delay") / 1000;
+				$("#san_notif_hide")[0].checked = (gup("autoHide") == 'true');
+				$("#san_notif_limit")[0].value = gup("limit");
+				$("#san_notif_reverse")[0].checked = (gup("reverse") == 'true');
+				$("#dialogtext").html("You have successfully imported settings from Game notifications. Make sure to save it before leaving this page.");
+				$("#dialog").dialog({
+					modal : true,
+					width : 400,
+					title : "Alert",
+					buttons : {
+						Close : function() {
+							$(this).dialog("close");
+						}
+					}
+				});
+				$("div[for='op-gameposts']").trigger("click");
+			}
+		} else {
+			showPage("op-general");
+		}
+	});
 
 	function clearData() {
 		localStorage["gnc"] = "";
@@ -102,6 +96,18 @@
 		historyCache = null;
 		var settings = new Settings();
 		settings.save();
+	}
+	
+	/**
+	 * Slugify a text
+	 * @param text
+	 * @returns
+	 */
+	function slugify(text) {
+		text = text.replace(/[^-a-zA-Z0-9,&\s]+/ig, '');
+		text = text.replace(/-/gi, "_");
+		text = text.replace(/\s/gi, "-");
+		return text;
 	}
 
 	function updateSettings() {
@@ -118,14 +124,23 @@
 		settings.max_selection = $("#max_selection")[0].value;
 		settings.show_partial_message = $("#show_partial_message")[0].checked;
 
-		gsettings.gs_delay = $("#san_gs_delay")[0].value*1000;
+		gsettings.gs_delay = $("#san_gs_delay")[0].value * 1000;
 		gsettings.gs_hide = $("#san_gs_hide")[0].checked;
 		gsettings.gs_limit = $("#san_gs_limit")[0].value;
 		gsettings.gs_reverse = $("#san_gs_reverse")[0].checked;
-		gsettings.notif_delay = $("#san_notif_delay")[0].value*1000;
+		gsettings.notif_delay = $("#san_notif_delay")[0].value * 1000;
 		gsettings.notif_hide = $("#san_notif_hide")[0].checked;
 		gsettings.notif_limit = $("#san_notif_limit")[0].value;
 		gsettings.notif_reverse = $("#san_notif_reverse")[0].checked;
+		
+		games = settings.games_settings;
+		for ( var i = 0; i < games.length; i++) {
+			game = games[i];
+			game.hide = $("#cb_"+slugify(games[i].name))[0].checked;
+			games[i] = game;
+		}
+		settings.games_settings = games;
+		
 
 		settings.save();
 		gsettings.save();
@@ -150,11 +165,11 @@
 		$("#max_selection")[0].value = settings.max_selection;
 		$("#show_partial_message")[0].checked = settings.show_partial_message;
 
-		$("#san_gs_delay")[0].value = gsettings.gs_delay/1000;
+		$("#san_gs_delay")[0].value = gsettings.gs_delay / 1000;
 		$("#san_gs_hide")[0].checked = gsettings.gs_hide;
 		$("#san_gs_limit")[0].value = gsettings.gs_limit;
 		$("#san_gs_reverse")[0].checked = gsettings.gs_reverse;
-		$("#san_notif_delay")[0].value = gsettings.notif_delay/1000;
+		$("#san_notif_delay")[0].value = gsettings.notif_delay / 1000;
 		$("#san_notif_hide")[0].checked = gsettings.notif_hide;
 		$("#san_notif_limit")[0].value = gsettings.notif_limit;
 		$("#san_notif_reverse")[0].checked = gsettings.notif_reverse;
@@ -169,6 +184,24 @@
 		var defaultTime = settings.notification_default_time;
 		var dtS = splitTime(defaultTime);
 		tp = new TimePicker(dtS[0], dtS[1], dtS[2], dtS[3], $("#timepicker"));
+		
+		
+		//Games options
+		var games = settings.games_settings;
+		var lis = "";
+		var divs = "";
+		for ( var i = 0; i < games.length; i++) {
+			lis+='<li><a href="#go_'+slugify(games[i].name)+'" style="font-size:0.7em !important;">'+games[i].name+'</a></li>';
+			divs+='<div id="go_'+slugify(games[i].name)+'"><input type="checkbox"';
+			if (games[i].hide){
+				divs+=' checked="checked"';
+			}
+			divs+='" id="cb_'+slugify(games[i].name)+'" sname="'+games[i].name+'"/><label for="cb_'+slugify(games[i].name)+'" sname="'+games[i].name+'">Hidden</label></div>';
+		}
+		$("#gamesOptions").append('<ul>'+lis+'</ul>'+divs);
+		$("#gamesOptions").tabs("destroy");
+		$("#gamesOptions").tabs();
+		
 	}
 	function resetToDefaults() {
 		settings = new Settings();
@@ -213,6 +246,7 @@
 			notifications</div>
 		<div for="op-gameposts" class="optiontab">Stream and
 			notifications</div>
+		<div for="op-gamesoptions" class="optiontab">Games options</div>
 		<div for="op-debug" class="optiontab">Debug</div>
 	</div>
 	<div id="pageoption">
@@ -362,10 +396,12 @@
 			<div class="explanation">Auto hide picked notifications.</div>
 			<div class="optionline">
 				<div class="inputcontainer">
-					<span class="numeric-stepper">
-						<input id="san_notif_delay" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off">
+					<span class="numeric-stepper"> <input id="san_notif_delay"
+						value="delay" type="text" name="ns_textbox_0" size="2"
+						autocomplete="off">
 						<button type="submit" name="ns_button_1_0" value="1" class="plus">A</button>
-						<button type="submit" name="ns_button_2_0" value="-1" class="minus">Å</button>
+						<button type="submit" name="ns_button_2_0" value="-1"
+							class="minus">Å</button>
 					</span>
 				</div>
 				<label for="san_notif_delay">Delay</label>
@@ -398,10 +434,12 @@
 			<div class="explanation">Auto hide picked game posts.</div>
 			<div class="optionline">
 				<div class="inputcontainer">
-					<span class="numeric-stepper">
-						<input id="san_gs_delay" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off">
+					<span class="numeric-stepper"> <input id="san_gs_delay"
+						value="delay" type="text" name="ns_textbox_0" size="2"
+						autocomplete="off">
 						<button type="submit" name="ns_button_1_0" value="1" class="plus">A</button>
-						<button type="submit" name="ns_button_2_0" value="-1" class="minus">Å</button>
+						<button type="submit" name="ns_button_2_0" value="-1"
+							class="minus">Å</button>
 					</span>
 				</div>
 				<label for="san_gs_delay">Delay</label>
@@ -416,6 +454,11 @@
 				<label for="san_gs_reverse">Reverse</label>
 			</div>
 			<div class="explanation">Pick game posts from the oldest.</div>
+		</div>
+		<div id="op-gamesoptions" class="optionpage">
+			<h2>Games</h2>
+			<div id="gamesOptions"></div>
+
 		</div>
 		<div id="op-debug" class="optionpage">
 			<h2>Debug</h2>

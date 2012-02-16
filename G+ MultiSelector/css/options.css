@@ -52,7 +52,7 @@ body {
     left: 300px;
     bottom: 75px;
     right:0px;
-    width: 700px;
+    margin-right: 20px;
     padding: 20px;
 }
 #save {

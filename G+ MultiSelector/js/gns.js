@@ -88,17 +88,17 @@ function look4MultiAccounts(){
 				look4MultiAccounts();
 				multiAccountData.push(normalizeGJsonMA(data.substring(5)));
 			} else {
-				
+
 				//Extract user infos
 				for ( var i = 0; i < multiAccountData.length; i++) {
-					
+
 					var userInfo= new Object();
-					
+
 					var subObj = multiAccountData[i][0][1].firstObj;
-									
+
 					for ( var j = 0; j < subObj.length; j++) {
 						if (subObj[j] != undefined) {
-						var aclEntries = subObj[j].aclEntries;
+							var aclEntries = subObj[j].aclEntries;
 							if (aclEntries != undefined) {
 								for ( var k = 0; k < aclEntries.length; k++) {
 									if (aclEntries[k].scope.scopeType == "user"){
@@ -120,7 +120,7 @@ function look4MultiAccounts(){
 						}
 					}
 				}
-				
+
 				if (multiAccountUsers.length > 1){
 					sendMA2Ext(multiAccountUsers);
 				}
@@ -145,12 +145,12 @@ function addContactsToCircle(contactsToAdd, circleId, circlename) {
 			'https://plus.google.com/_/socialgraph/mutate/modifymemberships/', 
 			'a=[[["' + circleId + '"]]]&m='+contactsAddedString+'&at=' + gplustoken + '&r=[[]]', function () {openAlert("Contacts added", messageToSend);},'text');
 	messageToSend = contactsToAdd.length+" contacts have been added to the "+circlename+" circle.";
-	
+
 }
 
 //Get the circles from G+
 function importCircle(userId){
-	
+
 	/**
 	 * gplustoken is a string used to identify the user for further requests
 	 */
@@ -168,91 +168,91 @@ function importCircle(userId){
 			}
 		}
 	});
-	
-	
-	
+
+
+
 	var url = circleUrl[0]+userId+circleUrl[1];
 
 	//Load only if not already done
 	//if (circles.length == 0 && members.length == 0){
-		//AJAX request
-		$.ajax({
-			url: url,
-			beforeSend: function( xhr ) {
-				xhr.overrideMimeType( 'text/plain;' );
-			},
-			context: document.body,
-			error: function(jqXHR, textStatus, errorThrown){
-				sendDataError2Ext(textStatus, jqXHR.responseText);
-			},
-			timeout: 5000,
-			success: function(data){
-				
-				//Circles ans members vars population
-				circles = new Array();
-				members = new Array();
-				//AJAX response normalization
-				var normalizedData = normalizeGJson(data.substring(5));
-				var circlesData = normalizedData[0][1];
-				var membersData = normalizedData[0][2];
+	//AJAX request
+	$.ajax({
+		url: url,
+		beforeSend: function( xhr ) {
+			xhr.overrideMimeType( 'text/plain;' );
+		},
+		context: document.body,
+		error: function(jqXHR, textStatus, errorThrown){
+			sendDataError2Ext(textStatus, jqXHR.responseText);
+		},
+		timeout: 5000,
+		success: function(data){
 
-				/**
-				 * Data decoding
-				 */
-				//Circles
-				for (var i=0; i < circlesData.length;i++){
-					var circle = new Circle();
-					circle.code = circlesData[i][0][0];
-					circle.name = circlesData[i][1][0];
-					circle.members = new Array();
+			//Circles ans members vars population
+			circles = new Array();
+			members = new Array();
+			//AJAX response normalization
+			var normalizedData = normalizeGJson(data.substring(5));
+			var circlesData = normalizedData[0][1];
+			var membersData = normalizedData[0][2];
 
-					//Escaping blocked circle 
-					if (circle.code != blockedCircleId){
-						circles.push(circle);
-					}
+			/**
+			 * Data decoding
+			 */
+			//Circles
+			for (var i=0; i < circlesData.length;i++){
+				var circle = new Circle();
+				circle.code = circlesData[i][0][0];
+				circle.name = circlesData[i][1][0];
+				circle.members = new Array();
+
+				//Escaping blocked circle 
+				if (circle.code != blockedCircleId){
+					circles.push(circle);
 				}
-
-				//Members
-				for (var i=0; i < membersData.length;i++){
-					var member = new Contact();
-					member.code = membersData[i][0][2];
-					member.img = membersData[i][2][8];
-
-					if (member.img != null){
-						if (member.img.indexOf("http")<0){
-							member.img = "https:"+member.img;
-						}
-					}
-
-					member.name = membersData[i][2][0];
-
-					var mCircles = new Array();
-					for (var j=0; j < membersData[i][3].length;j++){
-						mCircles.push(membersData[i][3][j][2]);
-						for (var k=0; k < circles.length;k++){
-							if (circles[k].code == membersData[i][3][j][2]){
-								circles[k].members.push(member);
-							}
-						}
-					}
-					member.circles = mCircles;
-
-
-					members.push(member);
-				}
-
-				//Send data to popup
-				sendData2Ext(JSON.stringify(circles), JSON.stringify(members));
-
-				if (waiting4Circle != undefined && waiting4Circle == true){
-					populateCirclesToAddPeople();
-				}
-
 			}
-		});
+
+			//Members
+			for (var i=0; i < membersData.length;i++){
+				var member = new Contact();
+				member.code = membersData[i][0][2];
+				member.img = membersData[i][2][8];
+
+				if (member.img != null){
+					if (member.img.indexOf("http")<0){
+						member.img = "https:"+member.img;
+					}
+				}
+
+				member.name = membersData[i][2][0];
+
+				var mCircles = new Array();
+				for (var j=0; j < membersData[i][3].length;j++){
+					mCircles.push(membersData[i][3][j][2]);
+					for (var k=0; k < circles.length;k++){
+						if (circles[k].code == membersData[i][3][j][2]){
+							circles[k].members.push(member);
+						}
+					}
+				}
+				member.circles = mCircles;
+
+
+				members.push(member);
+			}
+
+			//Send data to popup
+			sendData2Ext(JSON.stringify(circles), JSON.stringify(members));
+
+			if (waiting4Circle != undefined && waiting4Circle == true){
+				populateCirclesToAddPeople();
+			}
+
+		}
+	});
 //	} else {
-//		//Send data to popup
-//		sendData2Ext(circles, members);
+//	//Send data to popup
+//	sendData2Ext(circles, members);
 //	}
 
 }
@@ -387,9 +387,9 @@ var dispatchMouseEvent = function(target, var_args) {
 	target.dispatchEvent(e);
 };
 
-// Parent iFrame of the Contact Picker
+//Parent iFrame of the Contact Picker
 var CPIframe = null;
-// Div to scroll
+//Div to scroll
 var scrollDiv=null;
 var scrollDivHeight=0;
 var currentScroll=0;
@@ -412,7 +412,7 @@ function launchSelection(members, time, partial,circleCode) {
 			if (url.indexOf("contactPicker")>-1){
 				//Is it shown ?
 				if ($(this).width() > 0){
-					
+
 					CPIframe = $(this);
 					CPIframe.contents().find("."+classScrollDiv).each(function(index) {
 						scrollDivHeight = $(this).height();
@@ -436,24 +436,24 @@ function launchSelection(members, time, partial,circleCode) {
 	} else if($("."+myCirclesContainer).length > 0) {
 		cont = $("."+myCirclesContainer)[0];
 		scrollDiv = $(cont).parent()[0];
-		
+
 		scrollDiv.scrollTop = 100;
-		
+
 		pickVisibleContactsInMyCircles(cont);
 		$(scrollDiv).scroll(function() {
 			pickVisibleContactsInMyCircles(cont);
 		});
-		
+
 		scrollTheDiv(scrollDiv);
 		sendPerformed(members, time, partial, circleCode);
-		
-		
+
+
 	} else {
 		sendNotPerformed();
 	}
 }
 
-// Selects all the contacts !
+//Selects all the contacts !
 function pickVisibleContacts(){
 
 	CPIframe.contents().find("."+classUnselected).each(function(index) {
@@ -466,7 +466,7 @@ function pickVisibleContacts(){
 		}
 	});
 }
-// Selects all the contacts in my circles !
+//Selects all the contacts in my circles !
 function pickVisibleContactsInMyCircles(cont){
 	$(cont).contents().find("."+myCirclesContact).each(function(index) {
 		if (!$(this).hasClass(myCirclesSelectedContact)){

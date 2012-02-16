@@ -28,6 +28,7 @@ function Game(){
 	this.n_filterOut;
 	this.s_filterIn;
 	this.s_filterOut;
+	this.hide = false;
 	
 	this.encode = function(){
 		return JSON.stringify(this);
@@ -53,6 +54,9 @@ function Game(){
 		}
 		if (decoded.s_filterOut != undefined){
 			this.s_filterOut = decoded.s_filterOut;
+		}
+		if (decoded.hide != undefined){
+			this.hide = decoded.hide;
 		}
 	};
 }
