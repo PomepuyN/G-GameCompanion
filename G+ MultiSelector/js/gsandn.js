@@ -42,7 +42,7 @@ var d_hideStreamPostClass = "t0psmc"; // ok
 var d_cancelHideClass = "dSEkJe"; // ok
 var d_hideArrowClass = "Hf"; // ok
 var d_plusoneClass = "BRowJd"; // ok
-var d_plusloaderClass = "k-Qf-Va-sb-Aa"; // ok
+var d_plusloaderClass = "k-Va-sb-Aa"; // ok
 var d_myNameClass = "k-Qf-pu-LS"; // ok
 
 //Add contacts from the people having played to a game
@@ -1139,7 +1139,6 @@ function gpmeCollapse(n) {
  * @param n
  */
 function hideStreamPost(n) {
-	scrollTop = $("body").scrollTop();
 	dispatchMouseEvent(n.hideArrowNode[0], 'mousedown', true, true);
 	dispatchMouseEvent(n.hideArrowNode[0], 'mouseup', true, true);
 	dispatchMouseEvent(n.hideArrowNode[0], 'click', true, true);
@@ -1148,7 +1147,6 @@ function hideStreamPost(n) {
 	dispatchMouseEvent(hideNode[0], 'mousedown', true, true);
 	dispatchMouseEvent(hideNode[0], 'mouseup', true, true);
 	dispatchMouseEvent(hideNode[0], 'click', true, true);
-
 	$("body").scrollTop(scrollTop);
 
 	$('#gncGSmorehidden-' + slugify(n.game)).append(n.mainnode);
