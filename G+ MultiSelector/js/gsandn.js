@@ -42,7 +42,7 @@ var d_hideStreamPostClass = "t0psmc"; // ok
 var d_cancelHideClass = "dSEkJe"; // ok
 var d_hideArrowClass = "Hf"; // ok
 var d_plusoneClass = "BRowJd"; // ok
-var d_plusloaderClass = "k-Va-sb-Aa"; // ok
+var d_plusloaderClass = "yG12ye"; // ok
 var d_myNameClass = "k-Qf-pu-LS"; // ok
 
 //Add contacts from the people having played to a game
@@ -53,7 +53,7 @@ var peoplePlayedContactDivClass = "AkM0qf";
 //Parent div of a notification
 var dn_notificationContainer = "ZuC1te";
 var dn_notificationGameTextClass = "aocudf";
-var dn_plusDivClass = "Tl";
+var dn_plusDivClass = "E4V1D";
 var dn_notificationTitleClass = "PqQN6b";
 var dn_insertAfterNode = "TCaCG";
 var dn_notificationNodeClass = "PThiGe";
