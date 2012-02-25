@@ -29,6 +29,9 @@
  * TODO : make a map to make changes more convenient.
  */
 //Parent div of a stream post
+
+var d_mainTitle = "PqQN6b";
+var d_mainCarousel = "ol1JWd";
 var d_streamPostContainer = "ORWD7d"; // ok
 var d_streamPostGameTextClass = "Lr"; // ok RiLh2d
 var d_streamPostGameTextClass2 = "RiLh2d"; // ok RiLh2d
@@ -85,6 +88,10 @@ var scrollTop = 0;
 var peoplePlayedListener = false;
 var peoplePlayedAddedButton = false;
 
+//Selected game
+var selectedId = null;
+var lastPlayedGames = null;
+
 /**
  * Ask for the settings
  */
@@ -105,6 +112,51 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	 * The game stream page has been updated
 	 */
 	if (request.action == "streamUpdated") {
+		
+		//Delete the main title and carousel
+		$("."+d_mainTitle).remove();
+		$("."+d_mainCarousel).remove();
+		
+		getGplusToken(function(){
+			
+			$.ajax({
+				type: "POST",
+				url: "/_/games/getGamesModel",
+				dataType: "text",
+				data: {
+					numNotificationsToFetch: 0,
+					sp: [9, 2, null, null, null, 20, null, null, [], null, null, null, null, null, null, []],
+					hl: "en",
+					at: gplustoken
+				},
+				success: function(data) {
+					gameData = eval(data.substring(6));
+					console.log(gameData);
+					
+					lastPlayedGames = gameData[0][4];
+					
+					for ( var i = 0; i < settings.games_settings.length; i++) {
+						var gInSet = settings.games_settings[i];
+						for ( var j = 0; j < gameData[0][3].length; j++) {
+							var gInAj = gameData[0][3][j];
+							if (gInAj[3] == gInSet.name){
+								gInSet.image = gInAj[23];
+								gInSet.gId = gInAj[12];
+							}
+						}
+					}
+					
+					chrome.extension.sendRequest({
+						action : 'saveGamesSettings',
+						games : settings.games_settings
+					});
+					
+				}
+			});
+			
+		});
+		
+		
 		init();
 		gs_movePlusDiv();
 		var url = window.location.href;
@@ -591,9 +643,46 @@ function init() {
 			$("." + d_streamPostContainer).bind('DOMNodeInserted', function(e) {
 				gs_bindCallback(e);
 			});
-			var html = '<div id="ggc_alert" class="hidden"></div><div id="gncGSCP"><ul oid="gncGSTabs"></ul></div>';
+			var html = '<div id="ggc_alert" class="hidden"></div><div id="gncGSCP"><div id="dock"></div><div class="arrow-left arrows">∂</div><div class="arrow-right arrows">d</div></div>';
 
 			$("." + d_streamPostTitleClass).after(html);
+			
+			$(".arrow-left").click(function(){
+				console.log($("#dock").left());
+				if ($("#dock").position().left < 0){
+					$("#dock").animate(
+					  {
+					    left: '+=204'
+					  },
+					  {
+						 complete: function() {
+							  if ($("#dock").position().left > 0){
+								  $("#dock").css("left", "0px");
+							  }
+						  }
+					  });
+				}
+			});
+			$(".arrow-right").click(function(){
+				var totalLength = $("#dock").children().length *102;
+				console.log(totalLength - 760);
+				if ($("#dock").position().left >  -(totalLength -760) ){
+					$("#dock").animate(
+						{
+							left: '-=204'
+						},
+						{
+							step: function(now, fx) {
+								var data = fx.elem.id + ' ' + fx.prop + ': ' + now;
+								if (now <  -(totalLength -760)){
+									$("#dock").stop();
+									$("#dock").offset({left:$("#dock").offset().left-now});
+								}
+							}
+						});
+				}
+			});
+			
 		}
 		gs_arrange();
 		$("." + d_streamPostTitleClass).addClass("notifTitle");
@@ -652,48 +741,72 @@ function gs_bindCallback(e) {
  */
 function gs_addGame(g) {
 	var hide = false;
+	var img="";
 	if (settings != undefined) {
 		hide = computeGameSettings(g);
+		
+		//Getting the image
+		for ( var i = 0; i < settings.games_settings.length; i++) {
+			var gInSet = settings.games_settings[i];
+			if (g == gInSet.name) {
+				img = gInSet.image;
+			}
+				
+		}
 	}
 	
 	if (hide){
 		return true;
 	}
 	var img_url = chrome.extension.getURL('imgs/infog.png');
-	var lis = '';
 	for ( var i = 0; i < gs_games.length; i++) {
 		if (gs_games[i] == g) {
 			return false;
 		}
-		lis += '<li><a class="tabHeader" oid="' + gs_games[i] + '" href="#gncGST-' + slugify(gs_games[i]) + '">' + gs_games[i] + '</li></a>';
+		//lis += '<li><a class="tabHeader" oid="' + gs_games[i] + '" href="#gncGST-' + slugify(gs_games[i]) + '">' + gs_games[i] + '</li></a>';
 	}
-	lis += '<li><a class="tabHeader" oid="' + g + '" href="#gncGST-' + slugify(g) + '">' + g + '</li></a>';
-	$("[oid=gncGSTabs]").html(lis);
+	//lis += '<li><a class="tabHeader" oid="' + g + '" href="#gncGST-' + slugify(g) + '">' + g + '</li></a>';
+	
+	
+	img = '<div class="gameTitle" id="gsid-'+slugify(g)+'" oid="'+slugify(g)+'" title="'+g+'"><img class="gameTitle" src="'+img+'"/><p class="bold" id="#gncGST-' + slugify(g) + '"></p></div>';
+	
+	$("#dock").prepend(img);
+	console.log($('div[id="gsid-'+slugify(g)+'"]'));
+	$('div[id="gsid-'+slugify(g)+'"]').tooltip({offset: [0 , 0], effect: 'fade', fadeInSpeed: 400, layout:'<div><div class="tooltip-arrow-border"></div><div class="tooltip-arrow"></div></div>'});
+	
+	$("div[id^='gsid-']").unbind("click");
+	$("div[id^='gsid-']").click(function() {
+		selectAGSGame($(this).attr("oid"));
+	});
+
+	//$("[oid=gncGSTabs]").html(lis);
 	html = '<div class="aNDiv" id="gncGST-'
 			+ slugify(g)
 			+ '">'
 			+ '<div class="gncGStopbar">'
-			+ '<div id="gncGS_go_btn_'
+			+ '<h2>'+g+'</h2>'
+			+ '<div class="toolbar ui-widget-header ui-corner-all">'
+			+ '<button id="gncGS_go_btn_'
 			+ slugify(g)
-			+ '" class="button">Launch</div>'
-			+ '<div id="gncGS_stop_btn_'
+			+ '" class="" title="Start">Start</button>'
+			+ '<button id="gncGS_stop_btn_'
 			+ slugify(g)
-			+ '" class="button buttonDisabled">Stop</div>'
-			+ '<div class="button right" id="gncGS_hide_all_btn_'
+			+ '" class="" title="Stop">Stop</button>'
+			+ '<button class="right" id="gncGS_hide_all_btn_'
 			+ slugify(g)
-			+ '">Hide all</div>'
-			+ '<div class="button right" id="gncGS_hide_preset_btn_'
+			+ '">Hide all</button>'
+			+ '<button class="right" id="gncGS_hide_preset_btn_'
 			+ slugify(g)
-			+ '">Hide posts matching preset</div>'
-			+ '<div class="button right" id="gncGS_hide_auto_'
+			+ '">Hide posts matching preset</button>'
+			+ '<button class="right" id="gncGS_hide_auto_'
 			+ slugify(g)
-			+ '">Always hide this game</div>'
+			+ '">Always hide this game</button>'
+			+ '</div>'
 			+ '<div class="hidden moreoptions" id="gncGSmoreoptions-'
 			+ slugify(g)
 			+ '">'
-			+
 
-			'<div class="optionsDiv">'
+			+'<div class="optionsDiv">'
 			+ '<h3>Global settings</h3>'
 			+ '<table align="center">'
 			+
@@ -815,7 +928,37 @@ function gs_addGame(g) {
 		});
 	});
 	gs_games.push(g);
+	if (selectedId == null){
+		selectedId = slugify(g);
+	}
+	selectAGSGame(selectedId);
+	generateToobar(g);
 	return false;
+}
+
+function generateToobar(g){
+	$( "#gncGS_go_btn_"+ slugify(g) ).button({
+		text: true,
+		icons: {
+			primary: "ui-icon-play"
+		}
+	});
+	$( "#gncGS_stop_btn_"+ slugify(g) ).button({
+		text: true,
+		icons: {
+			primary: "ui-icon-stop"
+		},
+		disabled: true
+	});
+	$( "#gncGS_hide_auto_"+ slugify(g) ).button({
+		text: true
+	});
+	$( "#gncGS_hide_all_btn_"+ slugify(g) ).button({
+		text: true
+	});
+	$( "#gncGS_hide_preset_btn_"+ slugify(g) ).button({
+		text: true
+	});
 }
 
 /**
@@ -1180,10 +1323,12 @@ function gs_pickupPosts(slugGame) {
 			}
 		}
 	});
-	$("#gncGS_stop_btn_" + slugGame).removeClass("buttonDisabled");
+	$("#gncGS_stop_btn_" + slugGame).button({disabled: false});
+	$("#gncGS_go_btn_" + slugGame).button({disabled: true});
 	$("#gncGS_stop_btn_" + slugGame).click(function() {
 		streamPostToProcess = new Array();
-		$("#gncGS_stop_btn_" + slugGame).addClass("buttonDisabled");
+		$("#gncGS_stop_btn_" + slugGame).button({disabled: true});
+		$("#gncGS_go_btn_" + slugGame).button({disabled: false});
 	});
 	gs_pickupAGSP();
 }
@@ -1285,14 +1430,15 @@ function parseStreamPostNode(node) {
 	return result;
 }
 
+
 /**
  * Update the number displayed in the tabs' text
  */
 function resetGSCounts() {
 	var totalReset = 0;
-	$("a[href*=gncGST]").each(function() {
+	$("p[id*=gncGST]").each(function() {
 
-		var target = $(this).attr("href").substring(1);
+		var target = $(this).attr("id").substring(1);
 		var cont = $("#c" + target);
 
 		var nb = 0;
@@ -1301,23 +1447,43 @@ function resetGSCounts() {
 				nb++;
 			}
 		});
-		$(this).html($(this).attr("oid") + ' (' + nb + ')');
+		$(this).html(' (' + nb + ')');
 		totalReset += nb;
 	});
 
 }
 
+function selectAGSGame(g){
+	$("div[id^='gncGST-']").hide();
+	selectedId = g;
+	
+	$("div[id^='gsid-']").removeClass("selectedGameTitle");
+	$("div[id='gsid-"+g+"']").addClass("selectedGameTitle");
+	
+	$("#gncGST-"+selectedId).show();
+	//$('img', $('div[id^="gsid-"]')).tooltip({position: "bottom center"});
+}
+
+function sortGames(){
+	if (lastPlayedGames != null) {
+		
+	}
+}
+
 function resetGS() {
 	resetGSCounts();
 
-	gs_selectedTab = $("#gncGSCP").tabs("option", "selected");
-	$("#gncGSCP").tabs("destroy");
-	if ($("[oid=gncGSTabs]").children().length > 0) {
-		$("#gncGSCP").tabs().find(".ui-tabs-nav").sortable({
-			axis : "x"
-		});
-		$("#gncGSCP").tabs("option", "selected", gs_selectedTab);
-	}
+//	gs_selectedTab = $("#gncGSCP").tabs("option", "selected");
+//	$("#gncGSCP").tabs("destroy");
+//	if ($("[oid=gncGSTabs]").children().length > 0) {
+//		$("#gncGSCP").tabs().find(".ui-tabs-nav").sortable({
+//			axis : "x"
+//		});
+//		$("#gncGSCP").tabs("option", "selected", gs_selectedTab);
+//	}
+	
+	sortGames();
+	
 
 	// Hack to manage posts going directly in tabs' divs
 	$("div[id*='gncGST-']").unbind('DOMNodeInserted');

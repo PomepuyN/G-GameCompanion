@@ -30,6 +30,7 @@
         "js/Objects/Game.js",
         "js/numericstepper.js",
         "js/jquery-ui.js",
+        "js/tooltip.js",
         "js/gsandn.js",
         "js/gns.js"],
       "run_at": "document_start"

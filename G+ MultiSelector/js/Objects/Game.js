@@ -29,6 +29,8 @@ function Game(){
 	this.s_filterIn;
 	this.s_filterOut;
 	this.hide = false;
+	this.image = "";
+	gId = "";
 	
 	this.encode = function(){
 		return JSON.stringify(this);
@@ -57,6 +59,12 @@ function Game(){
 		}
 		if (decoded.hide != undefined){
 			this.hide = decoded.hide;
+		}
+		if (decoded.image != undefined){
+			this.image = decoded.image;
+		}
+		if (decoded.gId != undefined){
+			this.gId = decoded.gId;
 		}
 	};
 }

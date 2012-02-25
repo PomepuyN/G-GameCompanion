@@ -148,28 +148,33 @@ function addContactsToCircle(contactsToAdd, circleId, circlename) {
 
 }
 
-//Get the circles from G+
-function importCircle(userId){
-
-	/**
-	 * gplustoken is a string used to identify the user for further requests
-	 */
+/**
+ * gplustoken is a string used to identify the user for further requests
+ */
+function getGplusToken(callback){
 	$.ajax({
 		type: 'GET',
 		url: 'https://plus.google.com/me',
 		dataType: 'html',
 		success: function(data) {
+			console.log("g+ token loaded");
 			this_pattern = /csi","[a-zA-Z0-9_\-]+:\d{13,}"/gm;
 			gplustoken = this_pattern.exec(data);					
 			if (gplustoken)	{
 				gplustoken = gplustoken[0];
 				gplustoken = gplustoken.replace(/csi","/g,'');
 				gplustoken = gplustoken.replace(/"/g,'');
+				callback();
 			}
 		}
 	});
+}
+
+//Get the circles from G+
+function importCircle(userId){
 
 
+	getGplusToken(null);
 
 	var url = circleUrl[0]+userId+circleUrl[1];
 
