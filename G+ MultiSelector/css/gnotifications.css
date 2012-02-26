@@ -38,6 +38,7 @@
 	color : #000;
 	border: 1px solid #777;
 	cursor: pointer;
+	
 	margin-left: 5px;
 }
 .buttonClear p {
@@ -181,7 +182,6 @@
 	float:left;
 	text-align:center;
 	vertical-align:center;
-	font-size:125%;
 	border:none;
 	background:none;
 }
@@ -322,10 +322,10 @@ h2 {
 	margin-left: 10px;
 	margin-top: 10px;
 	position: relative;
+	margin-bottom: 10px;
 }
 
-#gncGSCP {
-	width: 760px;
+#dockcontainer {
 	overflow: hidden;
 }
 .arrow-left {
@@ -333,6 +333,10 @@ h2 {
 }
 .arrow-right {
 	float: right;
+}
+.arrow_div {
+	height: 15px;
+	margin-bottom: 5px;
 }
 .arrows {
 	font-family: pointers;

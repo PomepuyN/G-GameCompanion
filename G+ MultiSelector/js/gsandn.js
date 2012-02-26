@@ -45,7 +45,7 @@ var d_hideStreamPostClass = "t0psmc"; // ok
 var d_cancelHideClass = "dSEkJe"; // ok
 var d_hideArrowClass = "Hf"; // ok
 var d_plusoneClass = "BRowJd"; // ok
-var d_plusloaderClass = "k-Va-sb-Aa"; // ok
+var d_plusloaderClass = "yG12ye"; // ok
 var d_myNameClass = "k-Qf-pu-LS"; // ok
 
 //Add contacts from the people having played to a game
@@ -56,7 +56,7 @@ var peoplePlayedContactDivClass = "AkM0qf";
 //Parent div of a notification
 var dn_notificationContainer = "ZuC1te";
 var dn_notificationGameTextClass = "aocudf";
-var dn_plusDivClass = "Tl";
+var dn_plusDivClass = "E4V1D";
 var dn_notificationTitleClass = "PqQN6b";
 var dn_insertAfterNode = "TCaCG";
 var dn_notificationNodeClass = "PThiGe";
@@ -117,48 +117,10 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		$("."+d_mainTitle).remove();
 		$("."+d_mainCarousel).remove();
 		
-		getGplusToken(function(){
-			
-			$.ajax({
-				type: "POST",
-				url: "/_/games/getGamesModel",
-				dataType: "text",
-				data: {
-					numNotificationsToFetch: 0,
-					sp: [9, 2, null, null, null, 20, null, null, [], null, null, null, null, null, null, []],
-					hl: "en",
-					at: gplustoken
-				},
-				success: function(data) {
-					gameData = eval(data.substring(6));
-					console.log(gameData);
-					
-					lastPlayedGames = gameData[0][4];
-					
-					for ( var i = 0; i < settings.games_settings.length; i++) {
-						var gInSet = settings.games_settings[i];
-						for ( var j = 0; j < gameData[0][3].length; j++) {
-							var gInAj = gameData[0][3][j];
-							if (gInAj[3] == gInSet.name){
-								gInSet.image = gInAj[23];
-								gInSet.gId = gInAj[12];
-							}
-						}
-					}
-					
-					chrome.extension.sendRequest({
-						action : 'saveGamesSettings',
-						games : settings.games_settings
-					});
-					
-				}
-			});
-			
-		});
 		
 		
 		init();
-		gs_movePlusDiv();
+		//gs_movePlusDiv();
 		var url = window.location.href;
 		var index = url.indexOf("games");
 		currentUrlBase = url.substring(0, index);
@@ -554,13 +516,13 @@ var loaderTimer;
  * Wait for the "more" button end
  * @param type = n or gs
  */
-function look4Loader(type) {
+function look4Loader(type, mode) {
 
 	if (type == "n") {
 
 		if ($("." + d_plusloaderClass).is(":visible")) {
 			loaderTimer = setTimeout(function() {
-				look4Loader(type);
+				look4Loader(type, mode);
 			}, 50);
 		} else {
 			$("#n_plusFake_img").hide();
@@ -573,15 +535,23 @@ function look4Loader(type) {
 	} else {
 		if ($("." + d_plusloaderClass).is(":visible")) {
 			loaderTimer = setTimeout(function() {
-				look4Loader(type);
+				look4Loader(type, mode);
 			}, 50);
 		} else {
-			$("#gs_plusFake_img").hide();
-			$("#gs_plusFake_text").show();
-			$('#gs_plusFake').addClass("button");
-			$('#gs_plusFake').removeClass("buttonClear");
+//			$("#gs_plusFake_img").hide();
+//			$("#gs_plusFake_text").show();
+//			$('#gs_plusFake').addClass("button");
+//			$('#gs_plusFake').removeClass("buttonClear");
 			gs_arrange();
 			clearTimeout(loaderTimer);
+			if (mode == 1 && $("." + dn_plusDivClass).is(":visible")) {
+				gs_launchMoreAction(mode);
+			}
+			if (!$("." + dn_plusDivClass).is(":visible")) {
+				//$('#gs_plusFake').hide();
+				$('#gs_gtb_more_all').button({disabled:true});
+				$('#gs_gtb_more').button({disabled:true});
+			}
 		}
 	}
 }
@@ -594,6 +564,7 @@ function look4Loader(type) {
 
 /**
  * Add the more button to the page
+ * DEPRECATED : DEAD CODE
  */
 function gs_movePlusDiv() {
 	var img_url = chrome.extension.getURL('imgs/loader.gif');
@@ -608,16 +579,20 @@ function gs_movePlusDiv() {
 
 	$('#gs_plusFake').unbind("click");
 	$('#gs_plusFake').click(function() {
-		dispatchMouseEvent($("." + dn_plusDivClass)[0], 'mouseover', true, true);
-		dispatchMouseEvent($("." + dn_plusDivClass)[0], 'mousedown', true, true);
-		dispatchMouseEvent($("." + dn_plusDivClass)[0], 'mouseup', true, true);
-		dispatchMouseEvent($("." + dn_plusDivClass)[0], 'click', true, true);
-		$("#gs_plusFake_img").show();
-		$("#gs_plusFake_text").hide();
-		$('#gs_plusFake').removeClass("button");
-		$('#gs_plusFake').addClass("buttonClear");
-		look4Loader("g");
+		gs_launchMoreAction(1);
 	});
+}
+
+function gs_launchMoreAction(mode){
+	dispatchMouseEvent($("." + dn_plusDivClass)[0], 'mouseover', true, true);
+	dispatchMouseEvent($("." + dn_plusDivClass)[0], 'mousedown', true, true);
+	dispatchMouseEvent($("." + dn_plusDivClass)[0], 'mouseup', true, true);
+	dispatchMouseEvent($("." + dn_plusDivClass)[0], 'click', true, true);
+//	$("#gs_plusFake_img").show();
+//	$("#gs_plusFake_text").hide();
+//	$('#gs_plusFake').removeClass("button");
+//	$('#gs_plusFake').addClass("buttonClear");
+	look4Loader("g", mode);
 }
 
 /**
@@ -643,29 +618,71 @@ function init() {
 			$("." + d_streamPostContainer).bind('DOMNodeInserted', function(e) {
 				gs_bindCallback(e);
 			});
-			var html = '<div id="ggc_alert" class="hidden"></div><div id="gncGSCP"><div id="dock"></div><div class="arrow-left arrows">∂</div><div class="arrow-right arrows">d</div></div>';
+			var html = '<div id="ggc_alert" class="hidden"></div>'+
+				'<div id="gncGSCP">'+
+					'<div id="dockcontainer"><div id="dock"></div></div>'+
+					'<div class="arrow_div">'+
+						'<div class="arrow-left arrows">∂</div>'+
+						'<div class="arrow-right arrows">d</div>'+
+					'</div>'+
+					'<div id="gs_gs_game_toolbar" class="toolbar ui-widget-header ui-corner-all">'+
+						'<button id="gs_gtb_more">Load 20 more</button>'+
+ 						'<button id="gs_gtb_more_all">Load all</button>'+
+						'<button class="right" id="gs_gtb_all_games">All games</button>'+
+					'</div>'+
+				'</div>';
 
+			
 			$("." + d_streamPostTitleClass).after(html);
+			$( "#gs_gtb_more" ).button({
+				text: true,
+				icons: {
+					primary: "ui-icon-arrowrefresh-1-w"
+				}
+			});
+			$( "#gs_gtb_more_all" ).button({
+				text: true,
+				icons: {
+					primary: "ui-icon-refresh"
+				}
+			});
+			$( "#gs_gtb_all_games" ).button({
+				text: true,
+				icons: {
+					primary: "ui-icon-circle-plus"
+				}
+			});
+			
+			$( "#gs_gtb_more" ).click(function(){
+				gs_launchMoreAction(0);
+			});
+			
+			$( "#gs_gtb_more_all" ).click(function(){
+				gs_launchMoreAction(1);
+			});
+
+			$( "#gs_gtb_all_games" ).click(function(){
+				window.location.href = "games/directory";
+			});
 			
 			$(".arrow-left").click(function(){
-				console.log($("#dock").left());
-				if ($("#dock").position().left < 0){
 					$("#dock").animate(
 					  {
 					    left: '+=204'
 					  },
 					  {
-						 complete: function() {
-							  if ($("#dock").position().left > 0){
-								  $("#dock").css("left", "0px");
+						  step: function(now, fx) {
+							  if (now > 0){
+								  setTimeout(function() {
+									  $("#dock").css("left", "0px");
+								  }, 20);
+								  $("#dock").stop();
 							  }
 						  }
 					  });
-				}
 			});
 			$(".arrow-right").click(function(){
-				var totalLength = $("#dock").children().length *102;
-				console.log(totalLength - 760);
+				var totalLength = $('div .gameTitle:visible',$("#dock")).length *102;
 				if ($("#dock").position().left >  -(totalLength -760) ){
 					$("#dock").animate(
 						{
@@ -673,7 +690,6 @@ function init() {
 						},
 						{
 							step: function(now, fx) {
-								var data = fx.elem.id + ' ' + fx.prop + ': ' + now;
 								if (now <  -(totalLength -760)){
 									$("#dock").stop();
 									$("#dock").offset({left:$("#dock").offset().left-now});
@@ -683,8 +699,52 @@ function init() {
 				}
 			});
 			
+			getGplusToken(function(){
+				$.ajax({
+					type: "POST",
+					url: "/_/games/getGamesModel",
+					dataType: "text",
+					data: {
+						numNotificationsToFetch: 0,
+						sp: [9, 2, null, null, null, 20, null, null, [], null, null, null, null, null, null, []],
+						hl: "en",
+						at: gplustoken
+					},
+					success: function(data) {
+						gameData = eval(data.substring(6));
+						
+						lastPlayedGames = gameData[0][4];
+						
+						for ( var i = 0; i < settings.games_settings.length; i++) {
+							var gInSet = settings.games_settings[i];
+							for ( var j = 0; j < gameData[0][3].length; j++) {
+								var gInAj = gameData[0][3][j];
+								if (gInAj[3] == gInSet.name){
+									gInSet.image = gInAj[23];
+									gInSet.gId = gInAj[12];
+								}
+							}
+						}
+						
+						gs_generateGameBar();
+						gs_showVisibleGames();
+						resetGSCounts();
+						
+						chrome.extension.sendRequest({
+							action : 'saveGamesSettings',
+							games : settings.games_settings
+						});
+						
+					}
+				});
+				
+			});
+			
+		} else {
+			gs_showVisibleGames();
 		}
 		gs_arrange();
+		resetGSCounts();
 		$("." + d_streamPostTitleClass).addClass("notifTitle");
 	}
 }
@@ -705,8 +765,21 @@ function gs_arrange() {
 			if (game == undefined) {
 				game = $('span[class*="' + d_streamPostGameTextClass2 + '"]', $(this)).html();
 			}
+
+			
 			if (game != undefined && game != "") {
-				hide = gs_addGame(game);
+				if (settings != undefined) {
+					hide = computeGameSettings(game);
+				}
+				var alreadyDone = false;
+				for ( var i = 0; i < visibleGames.length; i++) {
+					if (visibleGames[i] == slugify(game) && $('div[id="cgncGST-' + slugify(game) + '"]').length > 0){
+						alreadyDone = true;
+					} 
+				}
+				if (!alreadyDone) {
+					gs_addGame(game);
+				}
 			} else {
 				setTimeout('gs_arrange()', 200);
 				return false;
@@ -734,6 +807,42 @@ function gs_bindCallback(e) {
 	gsArrangeTimeout = setTimeout('gs_arrange()', 200);
 }
 
+function gs_generateGameBar(){
+	var computingGames = settings.games_settings;
+	html='';
+	for ( var i = 0; i < lastPlayedGames.length; i++) {
+		for ( var j = 0; j < computingGames.length; j++) {
+			if (lastPlayedGames[i] == computingGames[j].gId) {
+				g = computingGames[j].name;
+				html +=  '<div class="gameTitle hidden" id="gsid-'+slugify(g)+'" oid="'+slugify(g)+'" title="'+g+'"><img style="width:70px; height:84px;" class="gameTitle" src="'+computingGames[j].image+'"/><p class="bold" id="#gncGST-' + slugify(g) + '"></p></div>';
+				computingGames.splice(j,1);
+			}
+		}
+		 
+	}
+	for ( var i = 0; i < computingGames.length; i++) {
+		g = computingGames[i].name;
+		html +=  '<div class="gameTitle hidden" id="gsid-'+slugify(g)+'" oid="'+slugify(g)+'" title="'+g+'"><img style="width:70px; height:84px;" class="gameTitle" src="'+computingGames[i].image+'"/><p class="bold" id="#gncGST-' + slugify(g) + '"></p></div>';
+	}
+	$("#dock").prepend(html);
+	$('div[id^="gsid-"]').tooltip({offset: [0 , 0], effect: 'fade', fadeInSpeed: 400, layout:'<div><div class="tooltip-arrow-border"></div><div class="tooltip-arrow"></div></div>'});
+	
+	$("div[id^='gsid-']").hide();
+	
+	$("div[id^='gsid-']").unbind("click");
+	$("div[id^='gsid-']").click(function() {
+		selectAGSGame($(this).attr("oid")); 
+	});
+
+}
+
+var visibleGames = new Array();
+function gs_showVisibleGames(){
+	for ( var i = 0; i < visibleGames.length; i++) {
+		$('div[id="gsid-'+visibleGames[i]+'"]').show();
+	}
+}
+
 /**
  * Add a game tab to the page
  * @param g
@@ -741,45 +850,24 @@ function gs_bindCallback(e) {
  */
 function gs_addGame(g) {
 	var hide = false;
-	var img="";
 	if (settings != undefined) {
 		hide = computeGameSettings(g);
-		
-		//Getting the image
-		for ( var i = 0; i < settings.games_settings.length; i++) {
-			var gInSet = settings.games_settings[i];
-			if (g == gInSet.name) {
-				img = gInSet.image;
-			}
-				
-		}
 	}
+	
 	
 	if (hide){
 		return true;
 	}
+	visibleGames.push(slugify(g));
+	gs_showVisibleGames();
+	
 	var img_url = chrome.extension.getURL('imgs/infog.png');
 	for ( var i = 0; i < gs_games.length; i++) {
 		if (gs_games[i] == g) {
 			return false;
 		}
-		//lis += '<li><a class="tabHeader" oid="' + gs_games[i] + '" href="#gncGST-' + slugify(gs_games[i]) + '">' + gs_games[i] + '</li></a>';
 	}
-	//lis += '<li><a class="tabHeader" oid="' + g + '" href="#gncGST-' + slugify(g) + '">' + g + '</li></a>';
 	
-	
-	img = '<div class="gameTitle" id="gsid-'+slugify(g)+'" oid="'+slugify(g)+'" title="'+g+'"><img class="gameTitle" src="'+img+'"/><p class="bold" id="#gncGST-' + slugify(g) + '"></p></div>';
-	
-	$("#dock").prepend(img);
-	console.log($('div[id="gsid-'+slugify(g)+'"]'));
-	$('div[id="gsid-'+slugify(g)+'"]').tooltip({offset: [0 , 0], effect: 'fade', fadeInSpeed: 400, layout:'<div><div class="tooltip-arrow-border"></div><div class="tooltip-arrow"></div></div>'});
-	
-	$("div[id^='gsid-']").unbind("click");
-	$("div[id^='gsid-']").click(function() {
-		selectAGSGame($(this).attr("oid"));
-	});
-
-	//$("[oid=gncGSTabs]").html(lis);
 	html = '<div class="aNDiv" id="gncGST-'
 			+ slugify(g)
 			+ '">'
@@ -1440,13 +1528,14 @@ function resetGSCounts() {
 
 		var target = $(this).attr("id").substring(1);
 		var cont = $("#c" + target);
+		
 
-		var nb = 0;
-		cont.children().each(function() {
-			if (!$(this).hasClass("done")) {
-				nb++;
-			}
-		});
+		var nb = $('div[id^="update-"]:not(.done)',$("#c" + target)).length;
+//		cont.children().each(function() {
+//			if (!$(this).hasClass("done")) {
+//				nb++;
+//			}
+//		});
 		$(this).html(' (' + nb + ')');
 		totalReset += nb;
 	});
@@ -1464,14 +1553,11 @@ function selectAGSGame(g){
 	//$('img', $('div[id^="gsid-"]')).tooltip({position: "bottom center"});
 }
 
-function sortGames(){
-	if (lastPlayedGames != null) {
-		
-	}
-}
 
 function resetGS() {
 	resetGSCounts();
+	
+	
 
 //	gs_selectedTab = $("#gncGSCP").tabs("option", "selected");
 //	$("#gncGSCP").tabs("destroy");
@@ -1482,7 +1568,6 @@ function resetGS() {
 //		$("#gncGSCP").tabs("option", "selected", gs_selectedTab);
 //	}
 	
-	sortGames();
 	
 
 	// Hack to manage posts going directly in tabs' divs
@@ -1546,7 +1631,7 @@ function n_movePlusDiv() {
 		$("#n_plusFake_text").hide();
 		$('#n_plusFake').removeClass("button");
 		$('#n_plusFake').addClass("buttonClear");
-		look4Loader("n");
+		look4Loader("n",0);
 	});
 }
 
