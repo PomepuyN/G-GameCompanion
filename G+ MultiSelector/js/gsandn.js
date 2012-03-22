@@ -32,6 +32,7 @@
 
 var d_mainTitle = "PqQN6b";
 var d_mainCarousel = "ol1JWd";
+var d_moreGames = "lA9Tlb";
 var d_streamPostContainer = "ORWD7d"; // ok
 var d_streamPostGameTextClass = "Lr"; // ok RiLh2d
 var d_streamPostGameTextClass2 = "RiLh2d"; // ok RiLh2d
@@ -39,6 +40,7 @@ var d_streamPostTitleClass = "oCTSmc"; // ok
 var d_insertAfterNode = "ORWD7d"; // ok
 var d_streamPostNodeClass = "Te"; // ok
 var d_streamPostContentClass = "Ks"; // ok
+var d_streamPostMutedClass = "Uz7U5b"; // ok
 
 var d_streamPostLinkContainer = "Ye"; // ok
 var d_hideStreamPostClass = "t0psmc"; // ok
@@ -116,6 +118,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		//Delete the main title and carousel
 		$("."+d_mainTitle).remove();
 		$("."+d_mainCarousel).remove();
+		$("."+d_moreGames).remove();
 		
 		
 		
@@ -628,6 +631,7 @@ function init() {
 					'<div id="gs_gs_game_toolbar" class="toolbar ui-widget-header ui-corner-all">'+
 						'<button id="gs_gtb_more">Load 20 more</button>'+
  						'<button id="gs_gtb_more_all">Load all</button>'+
+						'<button class="right" id="gs_gtb_notifications">Notifications</button>'+
 						'<button class="right" id="gs_gtb_all_games">All games</button>'+
 					'</div>'+
 				'</div>';
@@ -652,6 +656,13 @@ function init() {
 					primary: "ui-icon-circle-plus"
 				}
 			});
+
+			$( "#gs_gtb_notifications" ).button({
+				text: true,
+				icons: {
+					primary: "ui-icon-mail-closed"
+				}
+			});
 			
 			$( "#gs_gtb_more" ).click(function(){
 				gs_launchMoreAction(0);
@@ -663,6 +674,10 @@ function init() {
 
 			$( "#gs_gtb_all_games" ).click(function(){
 				window.location.href = "games/directory";
+			});
+
+			$( "#gs_gtb_notifications" ).click(function(){
+				window.location.href = "games/notifications";
 			});
 			
 			$(".arrow-left").click(function(){
@@ -788,6 +803,14 @@ function gs_arrange() {
 			totalArr++;
 			$(this).removeClass("xi");
 			
+			console.log("********");
+			console.log($('.'+d_streamPostMutedClass, $(this)));
+			if ($('.'+d_streamPostMutedClass, $(this)).length > 0){
+				$('#gncGSmorehidden-' + slugify(game)).append($(this));
+				$('#gncGShiddenbar-' + slugify(game)).slideDown("slow");
+				return;
+			}
+			
 			if (!hide) {
 				$('div[id="cgncGST-' + slugify(game) + '"]').append($(this));
 			} else {
@@ -840,6 +863,10 @@ var visibleGames = new Array();
 function gs_showVisibleGames(){
 	for ( var i = 0; i < visibleGames.length; i++) {
 		$('div[id="gsid-'+visibleGames[i]+'"]').show();
+	}
+	if ($('selectedGameTitle').length == 0) {
+		console.log("****");
+		selectAGSGame($('div[id^="gsid-"]:visible:first').attr("oid"));
 	}
 }
 
@@ -911,7 +938,7 @@ function gs_addGame(g) {
 			+ '" value="delay" type="text" name="ns_textbox_0" size="2" autocomplete="off"><button type="submit" name="ns_button_1_0" value="1" class="plus">A</button><button type="submit" name="ns_button_2_0" value="-1" class="minus">Å</button></span></td>'
 			+ '<tr><td align="right"><label for="autoHide' + slugify(g) + '">Automatically hide the posts </label></td><td><input id="autoHide' + slugify(g) + '" type="checkbox" checked/></td></tr>'
 			+ '<tr><td align="right"><label for="reverse' + slugify(g) + '">Start from the oldest posts </label></td><td><input id="reverse' + slugify(g) + '" type="checkbox" checked/></td></tr>'
-			+ '<tr><td align="right"><div class="button" id="gncGS_save' + slugify(g) + '">Make default</div></td><td></td></tr>' +
+			+ '<tr><td align="right"><button id="gncGS_save' + slugify(g) + '">Make default</button></td><td></td></tr>' +
 
 			'</table>' + '</div>' + '<div class="optionsDiv">' + '<img id="gs_info_img' + slugify(g) + '" class="infoImg" src="' + img_url + '"/>' + '<h3>Game settings</h3>' +
 
@@ -925,8 +952,8 @@ function gs_addGame(g) {
 			+ '" type="text" value=""/></td></tr>' + '<tr><td align="right"><label for="plusOne' + slugify(g) + '">Automatically +1 the posts </label></td><td align="left"><input id="plusOne'
 			+ slugify(g) + '" type="checkbox"/></td></tr>' + '<tr style="display:none" class="gs_gpmefold"><td align="right"><label for="fold' + slugify(g)
 			+ '">G+Me fold the posts instead of hidding </label></td><td align="left"><input id="fold' + slugify(g) + '" type="checkbox" checked/></td></tr>'
-			+ '<tr><td align="center" colspan="2"><div class="button" id="gncGS_preview_' + slugify(g) + '">Preview</div><div class="button" id="gncGS_add_preset' + slugify(g)
-			+ '">Add</div><div class="button" id="gncGS_del_preset' + slugify(g) + '">Delete</div></td></tr>' +
+			+ '<tr><td align="center" colspan="2"><button id="gncGS_preview_' + slugify(g) + '">Preview</button><button id="gncGS_add_preset' + slugify(g)
+			+ '">Add</button><button id="gncGS_del_preset' + slugify(g) + '">Delete</button></td></tr>' +
 
 			'</table>' +
 
@@ -948,8 +975,12 @@ function gs_addGame(g) {
 		majSettings();
 
 	$('#gncGS_hide_auto_' + slugify(g)).click(function() {
-		if (confirm("You are about to hide all notifications / posts for this game in the future. This will take effect after having reloaded the page. You can undo this action in the options"))
-		computeGameHide(g);
+		if (confirm("You are about to hide all notifications / posts for this game in the future. You can undo this action in the options")) {
+			computeGameHide(g);
+			$('#gsid-'+slugify(g)).hide();
+			$('#gncGST-'+ slugify(g)).hide();
+			selectAGSGame($('div[id^="gsid-"]:visible:first').attr("oid"));
+		}
 	});
 	$('#gncGS_go_btn_' + slugify(g)).click(function() {
 		$("." + d_streamPostContentClass, 'div[id="cgncGST-' + slugify(g) + '"]').each(function() {
@@ -978,31 +1009,57 @@ function gs_addGame(g) {
 	$("#toggleGSmorehidden-" + slugify(g)).click(function() {
 		toggleGSMoreHidden(slugify(g));
 	});
+	
+	$( "#gncGS_hide_all_btn_"+ slugify(g) ).button({
+		text: true
+	});
 	$("#gncGS_hide_all_btn_" + slugify(g)).unbind("click");
 	$("#gncGS_hide_all_btn_" + slugify(g)).click(function() {
 		gs_hideAll(slugify(g));
 	});
+	
+	
+	$( "#gncGS_hide_preset_btn_"+ slugify(g) ).button({
+		text: true
+	});
 	$("#gncGS_hide_preset_btn_" + slugify(g)).unbind("click");
 	$("#gncGS_hide_preset_btn_" + slugify(g)).click(function() {
 		gs_hidePreset(slugify(g));
+	});
+	
+	
+	$( "#gncGS_save"+ slugify(g) ).button({
+		text: true
 	});
 	$("#gncGS_save" + slugify(g)).unbind("click");
 	$("#gncGS_save" + slugify(g)).click(function() {
 		gs_saveToOptions(slugify(g));
 	});
 
+	$( "#gncGS_add_preset"+ slugify(g) ).button({
+		text: true
+	});
 	$("#gncGS_add_preset" + slugify(g)).unbind("click");
 	$("#gncGS_add_preset" + slugify(g)).click(function() {
 		gs_addPresetSettings(slugify(g));
+	});
+	
+	$( "#gncGS_del_preset"+ slugify(g) ).button({
+		text: true
 	});
 	$("#gncGS_del_preset" + slugify(g)).unbind("click");
 	$("#gncGS_del_preset" + slugify(g)).click(function() {
 		gs_delPresetSettings(slugify(g));
 	});
+	
+	$( "#gncGS_preview_"+ slugify(g) ).button({
+		text: true
+	});
 	$("#gncGS_preview_" + slugify(g)).unbind("click");
 	$("#gncGS_preview_" + slugify(g)).click(function() {
 		gs_previewFilters(slugify(g));
 	});
+	
 	$("#gs-preset" + slugify(g)).unbind("change");
 	$("#gs-preset" + slugify(g)).change(function() {
 		gs_select_preset(slugify(g));
@@ -1018,8 +1075,8 @@ function gs_addGame(g) {
 	gs_games.push(g);
 	if (selectedId == null){
 		selectedId = slugify(g);
+		selectAGSGame(selectedId);
 	}
-	selectAGSGame(selectedId);
 	generateToobar(g);
 	return false;
 }
@@ -1494,10 +1551,13 @@ function gs_pickupAGSP() {
 			var nextNotifToPick = streamPostToProcess[0];
 			setTimeout('gs_pickupAGSP()', nextNotifToPick.delay);
 		} else {
-			$("div[id*=gncGS_stop_btn_]").addClass("buttonDisabled");
+			console.log(notifToPick);
+			$("#gncGS_stop_btn_" + slugify(notifToPick.game)).button({disabled: true});
+			$("#gncGS_go_btn_" + slugify(notifToPick.game)).button({disabled: false});
 		}
 	} else {
-		$("div[id*=gncGS_stop_btn_]").addClass("buttonDisabled");
+		$("button[id^='gncGS_stop_btn_']").button({disabled: true});
+		$("button[id^='gncGS_go_btn_']").button({disabled: false});
 	}
 	resetGSCounts();
 }
@@ -1543,9 +1603,11 @@ function resetGSCounts() {
 }
 
 function selectAGSGame(g){
+	console.log(g);
 	$("div[id^='gncGST-']").hide();
 	selectedId = g;
 	
+	console.log($("div[id='gsid-"+g+"']"));
 	$("div[id^='gsid-']").removeClass("selectedGameTitle");
 	$("div[id='gsid-"+g+"']").addClass("selectedGameTitle");
 	

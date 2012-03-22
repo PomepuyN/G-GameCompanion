@@ -69,12 +69,18 @@
 	border-radius : 3px;
 }
 
-.gnctopbar, .gnchiddenbar, .gncGStopbar, .gncGShiddenbar {
+.gnctopbar, .gncGStopbar {
 	padding: 5px;
 	border: 1px solid #BBB;
 	border-radius: 3px 3px 0px 0px;
-	background: #F1F1F1;
 	border-bottom: none;
+	background: #f2f2f2;
+}
+
+.gncGShiddenbar, .gnchiddenbar {
+	padding: 5px;
+	border: 1px solid #BBB;
+	background: #f2f2f2;
 }
 
 .gncGStopbar {
@@ -150,7 +156,7 @@
 	text-align: center;
 }
 .optionsDiv {
-	width:360px;
+	width:48%;
 	text-align:center;
 	display:inline-block;
 	border: #bbb 1px solid;
@@ -343,4 +349,8 @@ h2 {
 	font-size: 1.8em;
 	line-height: 15px;
 	cursor: pointer;
+}
+
+.ORWD7d {
+	margin-right: 0px !important;
 }
