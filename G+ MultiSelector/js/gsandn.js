@@ -36,11 +36,12 @@ var d_moreGames = "lA9Tlb";
 var d_streamPostContainer = "ORWD7d"; // ok
 var d_streamPostGameTextClass = "Lr"; // ok RiLh2d
 var d_streamPostGameTextClass2 = "RiLh2d"; // ok RiLh2d
-var d_streamPostTitleClass = "oCTSmc"; // ok
+var d_streamPostTitleClass = "sxD6P"; // ok
 var d_insertAfterNode = "ORWD7d"; // ok
 var d_streamPostNodeClass = "Te"; // ok
 var d_streamPostContentClass = "Ks"; // ok
 var d_streamPostMutedClass = "Uz7U5b"; // ok
+var d_gameChooserClass = "bAfwcf";
 
 var d_streamPostLinkContainer = "Ye"; // ok
 var d_hideStreamPostClass = "t0psmc"; // ok
@@ -767,6 +768,7 @@ function init() {
 var totalArr = 0;
 var hideListenerInterval;
 function gs_arrange() {
+	$("." + d_gameChooserClass).hide();
 	var cont = $("." + d_streamPostContainer);
 	$("div", cont).each(function() {
 		if ($(this).hasClass(d_streamPostNodeClass)) {
