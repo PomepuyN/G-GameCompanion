@@ -108,6 +108,10 @@
 	padding-top: 10px;
 	width: 100%;
 }
+.notifTitle {
+	float: none !important;
+	line-height: 50px;
+}
 .plusDiv {
 	line-height: 30px;
 	height: 30px;
