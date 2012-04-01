@@ -31,7 +31,10 @@
         "js/numericstepper.js",
         "js/jquery-ui.js",
         "js/tooltip.js",
-        "js/gsandn.js",
+        "js/gccontent/stream.js",
+        "js/gccontent/notifications.js",
+        "js/gccontent/common.js",
+        "js/gccontent/main.js",
         "js/gns.js"],
       "run_at": "document_start"
     }

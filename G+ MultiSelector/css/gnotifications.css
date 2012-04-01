@@ -75,6 +75,7 @@
 	border-radius: 3px 3px 0px 0px;
 	border-bottom: none;
 	background: #f2f2f2;
+	margin-top: 20px;
 }
 
 .gncGShiddenbar, .gnchiddenbar {
@@ -83,9 +84,6 @@
 	background: #f2f2f2;
 }
 
-.gncGStopbar {
-	margin-top: 20px;
-}
 
 .ui-widget-header {
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fefefe), color-stop(49%,#d1d1d1), color-stop(50%,#dbdbdb), color-stop(100%,#e2e2e2));
@@ -111,6 +109,7 @@
 .notifTitle {
 	float: none !important;
 	line-height: 50px;
+	font-weight: bold !important;
 }
 .plusDiv {
 	line-height: 30px;
