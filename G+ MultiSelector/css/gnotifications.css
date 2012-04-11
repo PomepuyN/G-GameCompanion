@@ -326,6 +326,9 @@ h2 {
 	padding: 10px 4px;
 }
 
+#gncCP {
+	width: 760px;
+}
 #dock {
 	width: 10000px;
 	margin-left: 10px;
