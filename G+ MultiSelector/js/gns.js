@@ -157,7 +157,6 @@ function getGplusToken(callback){
 		url: 'https://plus.google.com/me',
 		dataType: 'html',
 		success: function(data) {
-			console.log("g+ token loaded");
 			this_pattern = /csi","[a-zA-Z0-9_\-]+:\d{13,}"/gm;
 			gplustoken = this_pattern.exec(data);					
 			if (gplustoken)	{
@@ -174,7 +173,7 @@ function getGplusToken(callback){
 function importCircle(userId){
 
 
-	getGplusToken(null);
+	getGplusToken(function(){});
 
 	var url = circleUrl[0]+userId+circleUrl[1];
 
@@ -493,7 +492,6 @@ var lastScroll;
  */
 function scrollTheDiv(el){ 
 	el.scrollTop += 200;
-	//console.log(el.scrollTop);
 	if (el.scrollTop != lastScroll){
 		scrollTimer = setTimeout('scrollTheDiv(scrollDiv)', 50);
 	} else {

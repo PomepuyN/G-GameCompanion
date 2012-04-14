@@ -44,27 +44,10 @@ var notifTimes = new Array();
 			}
 		}
 
-// 		if (hasAGPlusTabBeenClosed && pendingTabs.length > 0){
-// 			setTimeout(function(){ openNextPost();}, 3000);
-// 		}
 		
 		openedTabs=newOpenedTabs;
 	});
 
-// 	function openNextPost(){
-// 		chrome.tabs.create({
-// 			url : pendingTabs[0],
-// 			selected : false
-// 		}, 
-// 		function(tab){
-// 			openedTabs.push(tab.id);
-// 			console.log("openedTabs");
-// 			console.log(openedTabs);
-					
-// 		});
-// 		pendingTabs.shift();
-// 		console.log("Pending tabs : "+pendingTabs);
-// 	}
 	/**
 	 * END of new feature : delaying the opening of tabs.
 	 */
@@ -558,23 +541,11 @@ var notifTimes = new Array();
 	chrome.extension.onRequest.addListener(function(request, sender,
 			sendResponse) {
 		if (request.action == "openNotifTab") {
-// 			console.log("OpenTabs : "+openedTabs.length);
-// 			if (openedTabs.length > 4) {
-// 				pendingTabs.push(request.url);
-// 			} else {
 				chrome.tabs.create({
 					url : request.url,
 					selected : false
 				}
-// 				, 
-// 				function(tab){
-// 					openedTabs.push(tab.id);
-// 					console.log("openedTabs");
-// 					console.log(openedTabs);
-							
-// 				}
 				);
-// 			}
 		}
 	});
 	/**

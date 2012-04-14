@@ -110,6 +110,52 @@
 		return text;
 	}
 
+	function exportSettings() {
+		$("#importDialog").dialog({
+			modal : true,
+			width : 1000,
+			height: 700, 
+			title : "Alert",
+			buttons : {
+				Close : function() {
+					$(this).dialog("close");
+				}
+			}
+		});
+		$("#importDialogHelpExport").show();
+		$("#importDialogHelpImport").hide();
+		$("#importDialogText").text(JSON.stringify(localStorage));
+	}
+	function importSettings() {
+		$("#importDialog").dialog({
+			modal : true,
+			width : 1000,
+			height: 700, 
+			title : "Alert",
+			buttons : {
+				Close : function() {
+					$(this).dialog("close");
+				},
+				Import : function() {
+					if ($("#importDialogText").val()!= ""){
+						settings =JSON.parse($("#importDialogText").val());
+						
+						localStorage["gnc"] = settings.gnc;
+						localStorage["lastversion"] = settings.lastversion;
+						localStorage["gamesettings"] = settings.gamesettings;
+						localStorage["settings"] = settings.settings;
+						localStorage["showWarning"] = settings.showWarning;
+						
+						location.reload(true);
+
+					}
+				}
+			}
+		});
+		$("#importDialogHelpExport").hide();
+		$("#importDialogHelpImport").show();
+		$("#importDialogText").text("");
+	}
 	function updateSettings() {
 		settings.allow_history = $("#allow_history")[0].checked;
 		settings.max_history_limit = $("#max_history_limit")[0].value;
@@ -496,6 +542,10 @@
 			onclick="javascript:resetToDefaults()">Reset</div>
 		<div class="button" id="launchButton"
 			onclick="javascript:updateSettings()">Save</div>
+		<div class="button" id="exportButton"
+			onclick="javascript:exportSettings()">Export</div>
+		<div class="button" id="importButton"
+			onclick="javascript:importSettings()">Import</div>
 		<div style="display: inline-block; padding-left: 10px;">
 			<p class="explanation savedTime hidden" id="savedTime">Saved at</p>
 		</div>
@@ -519,6 +569,11 @@
 	<div id="dialog" class="hidden">
 		<img src="imgs/warning.png" class="imagewarning" />
 		<p id="dialogtext" style="text-align: justify;"></p>
+	</div>
+	<div id="importDialog" class="hidden">
+		<p style="display: none;" id="importDialogHelpExport">Copy this text to import the settings later.</p>
+		<p style="display: none;" id="importDialogHelpImport">Paste any exported text to import the settings.</p>
+		<textarea id="importDialogText" style="width: 930px; height: 500px"></textarea>
 	</div>
 </body>
 </html>
