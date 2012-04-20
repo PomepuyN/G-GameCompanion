@@ -152,10 +152,18 @@ function addContactsToCircle(contactsToAdd, circleId, circlename) {
  * gplustoken is a string used to identify the user for further requests
  */
 function getGplusToken(callback){
+	console.log("getGplusToken");
+//	if (gplustoken != null) {
+//		callback();
+//		return;
+//	}
 	$.ajax({
 		type: 'GET',
 		url: 'https://plus.google.com/me',
 		dataType: 'html',
+		timeout: function() {
+			console.log("TIMEOUT getToken !!!!");
+		},
 		success: function(data) {
 			this_pattern = /csi","[a-zA-Z0-9_\-]+:\d{13,}"/gm;
 			gplustoken = this_pattern.exec(data);					
