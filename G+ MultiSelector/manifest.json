@@ -1,7 +1,6 @@
 {
 	"name": "G+ Game Companion", 
-	"version": "2.1.13374.4",
-	"update_url": "http://gplusnc.nicolaspomepuy.fr/updates.xml",
+	"version": "2.1.1",
 	"icons": {
     	"128": "icon128.png",
     	"48": "icon48.png",
