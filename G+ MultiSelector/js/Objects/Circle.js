@@ -1,1 +1,57 @@
-function Circle(){this.code;this.name;this.members;this.encode=function(){return JSON.stringify(this)};this.decode=function(e){var a=JSON.parse(e);this.code=a.code;this.name=a.name;var d=new Array();for(var b=0;b<a.members.length;b++){var c=new Contact();c.decode(JSON.stringify(a.members[b]));d.push(c)}this.members=d}}function decodeCircleArray(a){a=JSON.parse(a);var c=new Array();for(var b=0;b<a.length;b++){var d=new Circle();d.decode(JSON.stringify(a[b]));c.push(d)}return c};
+/**
+ * 
+	This file is part of G+ Game companion.
+
+    G+ Game companion is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    G+ Game companion is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with G+ Game companion.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * Circle
+ * Represent a circle with its code, name and members.
+ * @author Nicolas POMEPUY
+ */
+function Circle(){
+	this.code;
+	this.name;
+	this.members;
+	
+	this.encode = function(){
+		return JSON.stringify(this);
+	};
+	
+	this.decode = function(str){
+		var decoded = JSON.parse(str);
+		this.code = decoded.code;
+		this.name = decoded.name;
+		var membersC = new Array();
+		for ( var i = 0; i < decoded.members.length; i++) {
+			var newContact = new Contact();
+			newContact.decode(JSON.stringify(decoded.members[i]));
+			membersC.push(newContact);
+		}
+		this.members = membersC;
+	};
+	
+}
+
+function decodeCircleArray(arr){
+	arr = JSON.parse(arr);
+	var newArr = new Array();
+	for ( var i = 0; i < arr.length; i++) {
+		var newC = new Circle();
+		newC.decode(JSON.stringify(arr[i]));
+		newArr.push(newC);
+	}
+	return newArr;
+}

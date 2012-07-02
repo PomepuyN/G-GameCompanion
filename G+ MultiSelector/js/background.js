@@ -1,1 +1,556 @@
-var notifTimes=new Array();var settings;var notifications=new Array();var inCircles=new Array();var openedTabs=new Array();var pendingTabs=new Array();chrome.tabs.onRemoved.addListener(function(b,a){var d=new Array();var e=false;for(var c=0;c<openedTabs.length;c++){if(b!=openedTabs[c]){d.push(openedTabs[c])}else{e=true}}openedTabs=d});function checkForValidUrl(d,k,g){var e="plus.google.com";if(k.status=="complete"){if(g.url.indexOf(e)>-1&&g.url.indexOf(e+"/url?")==-1){var l=verifyFirstTimeUse();if(l&&!isOldVersionSuperior("1.2.9")){localStorage.gnc="";historyCache=null;var h=new Settings();h.save()}if(l){var h=new Settings();h.get();h.save()}var b="";verified=false;chrome.pageAction.show(d);var c=new RegExp("^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*games/","i");var f=new RegExp("^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*games","i");var m=new RegExp("^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*circles","i");var a=new RegExp("^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*games/directory","i");if(g.url.match(a)){chrome.tabs.sendRequest(d,{action:"gdUpdated",globalNotif:b})}if(g.url.match(f)&&!g.url.match(c)){chrome.tabs.sendRequest(d,{action:"streamUpdated",globalNotif:b})}else{if(g.url.indexOf(e)>-1&&g.url.indexOf("games/notifications")>-1){chrome.tabs.sendRequest(d,{action:"notificationsUpdated"})}else{chrome.tabs.sendRequest(d,{action:"otherUpdated"})}}var n=false;for(var j=0;j<inCircles.length;j++){entry=inCircles[j];if(entry.tabId==d){if(g.url.match(m)){entry.res=true}else{entry.res=false}n=true}}if(!n){entry=new Object();entry.tabId=d;if(g.url.match(m)){entry.res=true}else{entry.val=false}inCircles.push(entry)}}updateNotifs()}}function updateNotifs(){for(var d=0;d<notifTimes.length;d++){clearTimeout(notifTimes[d])}notifTimes=new Array();notifications=new Array();settings=new Settings();settings.get();if(settings.allow_notifications){notifications=getAllNotificationTimes();for(var d=0;d<notifications.length;d++){var c=new Date().getTime();var b=notifications[d].notificationTime-c;var a=setTimeout("notify(notifications["+d+"])",notifications[d].notificationTime-c);notifTimes.push(a)}}}var selectedTab;chrome.tabs.onActiveChanged.addListener(function(a,b){chrome.tabs.get(a,function(d){var c="plus.google.com";if(d.url.indexOf(c)>-1){selectedTab=d.id}})});var tabs=new Array();chrome.extension.onRequest.addListener(function(h,k,d){if(h.action=="updateNotifications"){updateNotifs();for(var l=0;l<tabs.length;l++){var f=new Settings();f.get();var a=JSON.stringify(f);var p=new GameSettings();p.get();var n=JSON.stringify(p);chrome.tabs.sendRequest(tabs[l],{action:"sendSettings",settings:a,gsettings:n,games:false})}}if(h.action=="openOptions"){var b=chrome.extension.getURL("options.html");if(h.type=="gs"){b+="?type=gs&limit="+h.limit+"&delay="+h.delay+"&autoHide="+h.autoHide+"&plusOne="+h.plusOne+"&reverse="+h.reverse}else{b+="?type=n&limit="+h.limit+"&delay="+h.delay+"&autoHide="+h.autoHide+"&reverse="+h.reverse}chrome.tabs.create({url:b,index:k.tab.index+1,selected:true})}if(h.action=="openFiltersPage"){var b=chrome.extension.getURL("filters.html");chrome.tabs.create({url:b,index:k.tab.index+1,selected:true})}if(h.action=="getSettings"){var f=new Settings();f.get();var a=JSON.stringify(f);var p=new GameSettings();p.get();var n=JSON.stringify(p);tabs.push(k.tab.id);chrome.tabs.sendRequest(k.tab.id,{action:"sendSettings",settings:a,gsettings:n,games:false})}if(h.action=="getOpenedPage"){chrome.tabs.get(selectedTab,function(j){var t=new RegExp("^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*circles","i");var i;if(j.url.match(t)){i=true}else{i=false}chrome.extension.sendRequest({action:"sendCurrentPage",inCircle:i})})}if(h.action=="changeLastFilter"){var p=new GameSettings();p.get();for(var l=0;l<p.games.length;l++){if(p.games[l].slugName==h.game){for(var g=0;g<p.games[l].filters.length;g++){if(p.games[l].filters[g].name==h.filter&&p.games[l].filters[g].type==h.type){if(p.games[l].filters[g].type=="gs"){p.games[l].lastFilterGS=p.games[l].filters[g]}else{p.games[l].lastFilterN=p.games[l].filters[g]}}}}}p.save();var f=new Settings();f.get();var a=JSON.stringify(f);var n=JSON.stringify(p);chrome.tabs.sendRequest(k.tab.id,{action:"sendSettings",settings:a,gsettings:n,games:false})}if(h.action=="saveGamesSettings"){var f=new Settings();f.get();f.games_settings=h.games;f.save()}if(h.action=="addPresetSettings"){var p=new GameSettings();p.get();var c=new Filter();c.decode(JSON.stringify(h.filter));var q=new GameS();q.slugName=h.game;for(var l=0;l<p.games.length;l++){if(p.games[l].slugName==h.game){q=p.games[l];p.games.splice(l,1)}}for(var l=0;l<q.filters.length;l++){if(q.filters[l].name==c.name){q.filters.splice(l,1)}}if(c.type=="gs"){q.lastFilterGS=c}else{q.lastFilterN=c}q.filters.push(c);p.games.push(q);p.save();var n=JSON.stringify(p);var f=new Settings();f.get();var a=JSON.stringify(f);chrome.tabs.sendRequest(k.tab.id,{action:"sendSettings",settings:a,gsettings:n,games:false,selectedGame:q.slugName})}if(h.action=="delPresetSettings"){var p=new GameSettings();p.get();for(var l=0;l<p.games.length;l++){if(p.games[l].slugName==h.game){for(var g=0;g<p.games[l].filters.length;g++){if(p.games[l].filters[g].name==h.filter&&p.games[l].filters[g].type==h.type){p.games[l].filters.splice(g,1)}}}}p.save();var n=JSON.stringify(p);var f=new Settings();f.get();var a=JSON.stringify(f);chrome.tabs.sendRequest(k.tab.id,{action:"sendSettings",settings:a,gsettings:n,games:false})}if(h.action=="saveGameSettings"){var f=new Settings();f.get();var e=f.games_settings;q=h.game;var r=new Game();var o=0;var s=false;for(var l=0;l<e.length;l++){if(e[l].slugName==q.slugName){r=e[l];o=l;s=true}}if(!s){var m=new Game();m.name=q.name;m.slugName=q.slugName;e.push(m);o=e.length-1}if(h.type=="gs"){e[o].s_filterOut=q.s_filterOut;e[o].s_filterIn=q.s_filterIn}if(h.type=="n"){e[o].n_filterOut=q.n_filterOut;e[o].n_filterIn=q.n_filterIn}f.games_settings=e;f.save();var a=JSON.stringify(f);chrome.tabs.sendRequest(k.tab.id,{action:"sendSettings",settings:a,games:true})}});var notification;function notify(b){var a=" custom ";if(b.autoNotif){a="n automatic "}notification=window.webkitNotifications.createHTMLNotification("notification.html?msg="+b.name+"&autonotif="+a);b.notificationTime=b.time;saveHistoryEntry(b,false);showNotification()}function showNotification(){notification.show();setTimeout("hideNotification()",settings.notification_time*1000)}function hideNotification(){notification.cancel()}chrome.extension.onRequest.addListener(function(c,b,a){if(c.action=="openNotifTab"){chrome.tabs.create({url:c.url,selected:false})}});chrome.tabs.onUpdated.addListener(checkForValidUrl);
+/**
+ * 
+	This file is part of G+ Game companion.
+
+    G+ Game companion is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    G+ Game companion is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with G+ Game companion.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * Functionnal part of the background page
+ * @author Nicolas POMEPUY
+ */
+
+var notifTimes = new Array();
+	var settings;
+	var notifications = new Array();
+	var inCircles = new Array();
+
+
+	/**
+	 * START of new feature : delaying the opening of tabs.
+	 */  
+	var openedTabs = new Array();
+	var pendingTabs = new Array();
+
+	chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
+		var newOpenedTabs = new Array();
+		var hasAGPlusTabBeenClosed = false;
+		for ( var i = 0; i < openedTabs.length; i++) {
+			if (tabId != openedTabs[i]){
+				newOpenedTabs.push(openedTabs[i]);
+			} else {
+				hasAGPlusTabBeenClosed = true;
+			}
+		}
+
+		
+		openedTabs=newOpenedTabs;
+	});
+
+	/**
+	 * END of new feature : delaying the opening of tabs.
+	 */
+	
+	
+	/**
+	 * Check if the url match the G+ domain to determine if the script has to be loaded.
+	 * @param tabId
+	 * @param changeInfo
+	 * @param tab
+	 */
+	function checkForValidUrl(tabId, changeInfo, tab) {
+		var limiter = 'plus.google.com';
+		//var limiter = '';
+
+		//Verify the page is completely loaded and that the tab shows a G+ page 
+		if (changeInfo.status == "complete") {
+			if (tab.url.indexOf(limiter) > -1
+					&& tab.url.indexOf(limiter + '/url?') == -1) {
+
+				//Launch actions if the extension is launched for the first time
+				var verifyFirstTime = verifyFirstTimeUse();
+				if (verifyFirstTime && !isOldVersionSuperior("1.2.9")) {
+					localStorage["gnc"] = "";
+					historyCache = null;
+					var settings = new Settings();
+					settings.save();
+				}
+				if (verifyFirstTime) {
+					var settings = new Settings();
+					settings.get();
+					settings.save();
+				}
+
+				var globalNotif="";
+
+				//Used to open a page for notifying user that a new icon has been set. Now desactivated
+/**				if (!verifyFirstTime
+						&& localStorage["showNewIcon"] == undefined) {
+					localStorage["showNewIcon"] = "true";
+					globalNotif = "nicon";
+					
+					
+					chrome.tabs.getSelected(null,function(tab) {
+
+						var url = chrome.extension.getURL("newIcon.html");
+						chrome.tabs.create({
+							url : url,
+							index : tab.index + 1,
+							selected : true
+						});
+					});
+				}*/
+
+				verified = false;
+
+				// ... show the page action (display the icon).
+				chrome.pageAction.show(tabId);
+
+				//Determine what page is loaded (Game stream and game notifications) to send properly options to gsandn.js
+				var reg = new RegExp(
+						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*games\/",
+						"i");
+				var reg2 = new RegExp(
+						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*games",
+						"i");
+				var regMyCircles = new RegExp(
+						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*circles",
+				"i");
+				var regGameDirectory = new RegExp(
+						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*games\/directory",
+				"i");
+				if (tab.url.match(regGameDirectory)) {
+					chrome.tabs.sendRequest(tabId, {
+						action : 'gdUpdated',
+						globalNotif : globalNotif
+					});
+				}
+				if (tab.url.match(reg2) && !tab.url.match(reg)) {
+					chrome.tabs.sendRequest(tabId, {
+						action : 'streamUpdated',
+						globalNotif : globalNotif
+					});
+				} else if (tab.url.indexOf(limiter) > -1
+						&& tab.url.indexOf("games/notifications") > -1) {
+					chrome.tabs.sendRequest(tabId, {
+						action : 'notificationsUpdated'
+					});
+				} else {
+					chrome.tabs.sendRequest(tabId, {
+						action : 'otherUpdated'
+					});
+				}
+				
+				var found = false;
+				for ( var i = 0; i < inCircles.length; i++) {
+					entry = inCircles[i];
+					if (entry.tabId == tabId){
+						if (tab.url.match(regMyCircles)) {
+							entry.res = true;
+						} else {
+							entry.res = false;
+						}
+						found = true;
+					}
+				}
+				if (!found){
+					entry = new Object();
+					entry.tabId = tabId;
+					if (tab.url.match(regMyCircles)) {
+						entry.res = true;
+					} else {
+						entry.val = false;
+					}
+					inCircles.push(entry);
+				}
+			}
+
+			updateNotifs();
+
+		}
+	};
+
+
+
+	
+	/**
+	 * Update the notifications to be sent back to user when a delay has passed
+	 */
+	function updateNotifs() {
+		for ( var i = 0; i < notifTimes.length; i++) {
+			clearTimeout(notifTimes[i]);
+		}
+		notifTimes = new Array();
+		notifications = new Array();
+		settings = new Settings();
+		settings.get();
+		if (settings.allow_notifications) {
+			notifications = getAllNotificationTimes();
+			for ( var i = 0; i < notifications.length; i++) {
+				var now = new Date().getTime();
+				var timeToNotif = notifications[i].notificationTime - now;
+				var intTO = setTimeout('notify(notifications[' + i + '])',
+						notifications[i].notificationTime - now);
+				notifTimes.push(intTO);
+			}
+		}
+	}
+
+	/**
+	 * Update the selected tab
+	 */
+	var selectedTab;
+	chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo) {
+		chrome.tabs.get(tabId, function(tab){
+			var limiter = 'plus.google.com';
+			if (tab.url.indexOf(limiter) > -1){
+				selectedTab = tab.id;
+			}
+		});
+	});
+	
+	/**
+	 * Getting requests from the extensions's other parts
+	 */
+	var tabs = new Array();
+	chrome.extension.onRequest.addListener(function(request, sender,
+			sendResponse) {
+
+		/**
+		 * The user notifications should be saved
+		 */
+		if (request.action == "updateNotifications") {
+			updateNotifs();
+			for ( var i = 0; i < tabs.length; i++) {
+				var settings = new Settings();
+				settings.get();
+				var settingsS = JSON.stringify(settings);
+
+				var gsettings = new GameSettings();
+				gsettings.get();
+				var gsettingsS = JSON.stringify(gsettings);
+				
+				
+				chrome.tabs.sendRequest(tabs[i], {
+					action : 'sendSettings',
+					settings : settingsS,
+					gsettings : gsettingsS,
+					games : false
+				});
+			}
+		}
+		
+		/**
+		 * Opens the options page
+		 */
+		if (request.action == "openOptions") {
+			var url = chrome.extension.getURL("options.html");
+			if (request.type == 'gs') {
+				url += "?type=gs&limit=" + request.limit + "&delay="
+						+ request.delay + "&autoHide=" + request.autoHide
+						+ "&plusOne=" + request.plusOne
+						+ "&reverse=" + request.reverse;
+			} else {
+				url += "?type=n&limit=" + request.limit + "&delay="
+						+ request.delay + "&autoHide=" + request.autoHide
+						+ "&reverse=" + request.reverse;
+			}
+			chrome.tabs.create({
+				url : url,
+				index : sender.tab.index + 1,
+				selected : true
+			});
+		}
+		
+		/**
+		 * Open the filters page
+		 */
+		if (request.action == "openFiltersPage") {
+			var url = chrome.extension.getURL("filters.html");
+			chrome.tabs.create({
+				url : url,
+				index : sender.tab.index + 1,
+				selected : true
+			});
+		}
+		
+		/**
+		 * Get All The Settings ! :)
+		 */
+		if (request.action == "getSettings") {
+			var settings = new Settings();
+			settings.get();
+			var settingsS = JSON.stringify(settings);
+			
+			var gsettings = new GameSettings();
+			gsettings.get();
+			var gsettingsS = JSON.stringify(gsettings);
+			
+			tabs.push(sender.tab.id);
+			chrome.tabs.sendRequest(sender.tab.id, {
+				action : 'sendSettings',
+				settings : settingsS,
+				gsettings : gsettingsS,
+				games : false
+			});
+		}
+
+		/**
+		 * What is the opened page ?
+		 */
+		if (request.action == "getOpenedPage") {
+			
+			//Determine if tab is in circle
+			chrome.tabs.get(selectedTab, function(tab){
+				var regMyCircles = new RegExp(
+						"^https?:\\/\\/plus\\.google\\.com\\/[a-zA-Z0-9/]*\\/*circles",
+				"i");
+				var res;
+				if (tab.url.match(regMyCircles)) {
+					res = true;
+				} else {
+					res = false;
+				}
+				chrome.extension.sendRequest({
+					action : 'sendCurrentPage',
+					inCircle : res
+				});
+			});
+			
+			
+			
+		}
+		
+		
+		if (request.action == "changeLastFilter") {
+			
+			var gsettings = new GameSettings();
+			gsettings.get();
+			
+			for ( var i = 0; i < gsettings.games.length; i++) {
+				if (gsettings.games[i].slugName == request.game){
+					for ( var j = 0; j < gsettings.games[i].filters.length; j++) {
+						if (gsettings.games[i].filters[j].name == request.filter && gsettings.games[i].filters[j].type == request.type){
+							if (gsettings.games[i].filters[j].type == "gs"){
+								gsettings.games[i].lastFilterGS = gsettings.games[i].filters[j];
+							} else {
+								gsettings.games[i].lastFilterN = gsettings.games[i].filters[j];
+							}
+						}
+					}
+				}
+			}
+			gsettings.save();
+			
+			var settings = new Settings();
+			settings.get();
+			var settingsS = JSON.stringify(settings);
+			
+			var gsettingsS = JSON.stringify(gsettings);
+
+			chrome.tabs.sendRequest(sender.tab.id, {
+				action : 'sendSettings',
+				settings : settingsS,
+				gsettings : gsettingsS,
+				games : false
+			});
+			
+		}
+		
+		/**
+		 * Saving game settings
+		 * May be dead code => we should verify
+		 */
+		if (request.action == "saveGamesSettings") {
+			var settings = new Settings();
+			settings.get();
+			settings.games_settings = request.games;
+			settings.save();
+		}
+		
+		/**
+		 * Asynchroneous saving / overwriting of a filter from a notification / Game stream page.
+		 */
+		if (request.action == "addPresetSettings") {
+			
+			var gsettings = new GameSettings();
+			gsettings.get();
+			
+			var filter = new Filter();
+			filter.decode(JSON.stringify(request.filter));
+			
+			var game = new GameS();
+			game.slugName = request.game;
+			for ( var i = 0; i < gsettings.games.length; i++) {
+				if (gsettings.games[i].slugName == request.game){
+					game = gsettings.games[i];
+					gsettings.games.splice(i, 1);
+				}
+			}
+			
+			for ( var i = 0; i < game.filters.length; i++) {
+				if (game.filters[i].name == filter.name){
+					game.filters.splice(i, 1);
+				}
+			}
+			
+			if (filter.type == "gs"){
+				game.lastFilterGS = filter;
+			} else {
+				game.lastFilterN = filter;
+			}
+			
+			game.filters.push(filter);
+			gsettings.games.push(game);
+			gsettings.save();
+			var gsettingsS = JSON.stringify(gsettings);
+			
+			var settings = new Settings();
+			settings.get();
+			var settingsS = JSON.stringify(settings);
+			
+			chrome.tabs.sendRequest(sender.tab.id, {
+				action : 'sendSettings',
+				settings : settingsS,
+				gsettings : gsettingsS,
+				games : false,
+				selectedGame: game.slugName
+			});
+			
+		}
+		
+		/**
+		 * Asynchroneous deleting of a filter from a notification / Game stream page.
+		 */
+		if (request.action == "delPresetSettings") {
+			
+			var gsettings = new GameSettings();
+			gsettings.get();
+			
+			for ( var i = 0; i < gsettings.games.length; i++) {
+				if (gsettings.games[i].slugName == request.game){
+					for ( var j = 0; j < gsettings.games[i].filters.length; j++) {
+						if (gsettings.games[i].filters[j].name == request.filter && gsettings.games[i].filters[j].type == request.type){
+							gsettings.games[i].filters.splice(j,1);
+						}
+					}
+				}
+			}
+			gsettings.save();
+			var gsettingsS = JSON.stringify(gsettings);
+			
+			var settings = new Settings();
+			settings.get();
+			var settingsS = JSON.stringify(settings);
+			
+			chrome.tabs.sendRequest(sender.tab.id, {
+				action : 'sendSettings',
+				settings : settingsS,
+				gsettings : gsettingsS,
+				games : false
+			});
+			
+		}
+		
+		/**
+		 * Asynchroneous saving of game settings from a notification / Game stream page.
+		 */
+		if (request.action == "saveGameSettings") {
+			var settings = new Settings();
+			settings.get();
+			var games = settings.games_settings;
+			//games = new Array();
+			game = request.game;
+
+			var oldGame = new Game();
+			var index = 0;
+			var found = false;
+			for ( var i = 0; i < games.length; i++) {
+				if (games[i].slugName == game.slugName) {
+					oldGame = games[i];
+					index = i;
+					found = true;
+				}
+			}
+			if (!found) {
+				var newGame = new Game();
+				newGame.name = game.name;
+				newGame.slugName = game.slugName;
+				games.push(newGame);
+				index = games.length - 1;
+			}
+
+			if (request.type == "gs") {
+				games[index].s_filterOut = game.s_filterOut;
+				games[index].s_filterIn = game.s_filterIn;
+			}
+			if (request.type == "n") {
+				games[index].n_filterOut = game.n_filterOut;
+				games[index].n_filterIn = game.n_filterIn;
+			}
+
+			settings.games_settings = games;
+			settings.save();
+
+			var settingsS = JSON.stringify(settings);
+			chrome.tabs.sendRequest(sender.tab.id, {
+				action : 'sendSettings',
+				settings : settingsS,
+				games : true
+			});
+		}
+	});
+
+	var notification;
+	/**
+	 * Prepare a notification to the user
+	 * @param historyentry
+	 */
+	function notify(he) {
+		var autoNotifString = " custom ";
+		if (he.autoNotif) {
+			autoNotifString = "n automatic ";
+		}
+		notification = window.webkitNotifications
+				.createHTMLNotification('notification.html?msg=' + he.name
+						+ '&autonotif=' + autoNotifString);
+		he.notificationTime = he.time;
+		saveHistoryEntry(he, false);
+		showNotification();
+	}
+
+	/**
+	 * Launch the notification
+	 */
+	function showNotification() {
+		notification.show();
+		setTimeout('hideNotification()', settings.notification_time * 1000);
+	}
+	
+	/**
+	 * Hide a notification
+	 */
+	function hideNotification() {
+		notification.cancel();
+	}
+	
+	/**
+	 * START of new feature : delaying the opening of tabs.
+	 */
+	chrome.extension.onRequest.addListener(function(request, sender,
+			sendResponse) {
+		if (request.action == "openNotifTab") {
+				chrome.tabs.create({
+					url : request.url,
+					selected : false
+				}
+				);
+		}
+	});
+	/**
+	 * END of new feature : delaying the opening of tabs.
+	 */
+
+	// Listen for any changes to the URL of any tab.
+	chrome.tabs.onUpdated.addListener(checkForValidUrl);

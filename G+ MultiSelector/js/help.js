@@ -1,1 +1,82 @@
-var oldVersion;function verifyFirstTimeUse(){oldVersion=localStorage.lastversion;if(localStorage.lastversion!=getVersion()){localStorage.lastversion=getVersion();return true}return false}function getVersion(){var a=chrome.app.getDetails();return a.version}function isOldVersionSuperior(a){var b=new RegExp("[.]+","g");var c=a.split(b);var d=oldVersion;if(d==undefined){d="1.0.0"}d=d.split(b);if(c.length<3){c.push(0)}if(d.length<3){d.push(0)}if(c[0]<d[0]){return true}if(c[1]<d[1]){return true}if(c[2]<d[2]){return true}return false};
+/**
+ * 
+	This file is part of G+ Game companion.
+
+    G+ Game companion is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    G+ Game companion is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with G+ Game companion.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * FIXME : This file should be renamed
+ */
+/**
+ * Get the use information (has the extension already been launched ...)
+ * @author Nicolas POMEPUY
+ */
+
+var oldVersion;
+/**
+ * Is this the first launch ?
+ * @returns {Boolean}
+ */
+function verifyFirstTimeUse() {
+	oldVersion = localStorage["lastversion"];
+	if (localStorage["lastversion"] != getVersion()){
+		localStorage["lastversion"] = getVersion();
+		return true;
+	}
+	return false;
+}
+/**
+ * Retrieve the extention version
+ * @returns version number
+ */
+function getVersion() {
+    var details = chrome.app.getDetails();
+    return details.version;
+ }
+
+/**
+ * Compare old version to another
+ * @param old version number
+ * @returns {Boolean}
+ */
+function isOldVersionSuperior(comp){
+	var reg = new RegExp("[.]+", "g");
+	var compS = comp.split(reg);
+	var currentVS = oldVersion;
+	if (currentVS == undefined){
+		currentVS = "1.0.0";
+	}
+	currentVS = currentVS.split(reg);
+	
+	if (compS.length < 3){
+		compS.push(0);
+	}
+	if (currentVS.length < 3){
+		currentVS.push(0);
+	}
+	
+	if (compS[0] < currentVS[0]){
+		return true;
+	}
+	if (compS[1] < currentVS[1]){
+		return true;
+	}
+	if (compS[2] < currentVS[2]){
+		return true;
+	}
+	
+	return false;
+	 
+}
